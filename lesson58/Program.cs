@@ -1,8 +1,14 @@
+using lesson58.Models;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+string connection = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<InstagramDb>(options => options.UseNpgsql(connection));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -22,6 +28,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Account}/{action=Login}/{id?}");
 
 app.Run();
