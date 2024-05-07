@@ -8,7 +8,6 @@
         result = user.Result.Avatar;
     }
 }
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -37,7 +36,7 @@
                     <div class="col ">
                         <img class="w-75 mt-2" src="../images/logo2.png"/>
                     </div>
-                    <div class="nav flex-column ms-3 " id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    <div class="nav flex-column ms-3 mt-4" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                         <a href="#" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3 ">
                             <i class=""><img class="w-25" src="../images/home.png"/></i><span class="ms-3">Home</span>
                         </a>
@@ -48,14 +47,20 @@
                             <i class=""><img class="w-25" src="../images/social.png"/></i><span class="ms-3">Explore</span>
                         </a>
                         <a href="#" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
-                            <i class=""><img class="w-25" src="../images/home.png"/></i><span class="ms-3">Home</span>
+                            <i class=""><img class="w-25" src="../images/add.png"/></i><span class="ms-3">Create</span>
                         </a>
                         <a href="#" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
-                            <i class=""><img class="w-25" src="@result"/></i><span class="ms-3">Profile</span>
+                            <i class=""><img class="w-25 rounded-circle" src="@result"/></i><span class="ms-3">Profile</span>
                         </a>
-                        <a href="#" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
-                            <i class=""><img class="w-25" src="../images/home.png"/></i><span class="ms-3">More</span>
-                        </a>
+                        <div class="btn-group dropup">
+                            <a class="btn  border border-0 dropdown-toggle btn-outline-light nav-link text-start text-dark mt-auto" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img class="w-25 " src="../images/menu.png"/><span class="ms-3">More</span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><form method="post" asp-controller="Account" asp-action="LogOut"><input type="submit" value="Log out" class="dropdown-item nav-link text-dark"/></form></li>
+                            </ul>
+                        </div>
+                        
                     </div>
                 </div>
             </div>

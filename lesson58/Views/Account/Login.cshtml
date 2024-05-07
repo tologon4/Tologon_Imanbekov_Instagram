@@ -19,9 +19,9 @@
                                 <img class="w-75 mt-2" src="../images/logo2.png"/>
                                 <div class="input-group mt-5">
                                     <div class="validation text-danger" asp-validation-summary="ModelOnly"></div>
-                                    <label for="email"><span class="text-danger" asp-validation-for="Email"></span></label>
+                                    <label for="email"><span class="text-danger" asp-validation-for="LoginValue"></span></label>
                                     <div class="input-group">
-                                        <input asp-for="Email" type="text" class="form-control" placeholder="Email or username" id="email">
+                                        <input asp-for="LoginValue" type="text" class="form-control" placeholder="Email or username" id="email">
                                     </div>
                                 </div>
                                 <div class="input-group mt-2">
@@ -49,6 +49,8 @@
         </div>
     </div>
 </div>
-@{
-    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+@section Scripts{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

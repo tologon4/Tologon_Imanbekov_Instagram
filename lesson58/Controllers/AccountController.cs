@@ -1,6 +1,7 @@
 using lesson58.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
@@ -10,13 +11,13 @@ public class AccountController : Controller
 {
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
-    private readonly IHostEnvironment _environment;
+    private readonly IWebHostEnvironment _environment;
 
     public IActionResult Home()
     {
         return View();
     }
-    public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IHostEnvironment environment)
+    public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IWebHostEnvironment environment)
     {
         _signInManager = signInManager;
         _userManager = userManager;
@@ -33,20 +34,26 @@ public class AccountController : Controller
     {
         if (ModelState.IsValid)
         {
-            User? user = await _userManager.FindByEmailAsync(model.Email);
-            SignInResult result = await _signInManager.PasswordSignInAsync(
-                user,
-                model.Password,
-                model.RememberMe,
-                false);
-            if (result.Succeeded)
+            User? user = await _userManager.FindByEmailAsync(model.LoginValue);
+            if (user == null)
+                user = await _userManager.FindByNameAsync(model.LoginValue);
+            if (user != null)
             {
-                if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
-                    return Redirect(model.ReturnUrl);
-                return RedirectToAction("Home");
+                SignInResult result = await _signInManager.PasswordSignInAsync(
+                    user,
+                    model.Password,
+                    model.RememberMe,
+                    false);
+                if (result.Succeeded)
+                {
+                    if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+                        return Redirect(model.ReturnUrl);
+                    return RedirectToAction("Home");
+                }
             }
+            ModelState.AddModelError("", "Invalid email, login or password!");
         }
-        ModelState.AddModelError("", "Вы неправильно заполнили форму!");
+        ModelState.AddModelError("", "Invalid provided form!");
         return View(model);
     }
 
@@ -57,19 +64,25 @@ public class AccountController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Register(RegisterViewModel model)
+    public async Task<IActionResult> Register(RegisterViewModel model, IFormFile uploadedFile)
     {
         ViewBag.Genders = new string[] { "Male", "Female"};
         if (ModelState.IsValid)
         {
+            string newFileName = Path.ChangeExtension(model.UserName.Trim(), Path.GetExtension(uploadedFile.FileName));
+            string path= $"/userImages/" + newFileName.Trim();
+            using (var fileStream = new FileStream(_environment.WebRootPath + path, FileMode.Create))
+            {
+                await uploadedFile.CopyToAsync(fileStream);
+            }
             User user = new User
             {
                 Email = model.Email,
+                FullName = model.FullName,
                 UserName = model.UserName,
-                Login = model.Login,
                 PhoneNumber = model.PhoneNumber,
                 Gender = model.Gender,
-                Avatar = "../images/Default_pfp.svg.png"
+                Avatar = path
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
@@ -82,5 +95,13 @@ public class AccountController : Controller
         }
         ModelState.AddModelError("", "Something went wrong! Please check all info");
         return View(model);
+    }
+    
+    [ValidateAntiForgeryToken]
+    [HttpPost]
+    public async Task<IActionResult> LogOut()
+    {
+        await _signInManager.SignOutAsync();
+        return RedirectToAction("Login", "Account");
     }
 }
