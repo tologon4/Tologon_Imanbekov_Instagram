@@ -1,4 +1,5 @@
 using lesson58.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,7 +9,9 @@ builder.Services.AddControllersWithViews();
 
 string connection = builder.Configuration.GetConnectionString("DefaultConnection");
 
-builder.Services.AddDbContext<InstagramDb>(options => options.UseNpgsql(connection));
+builder.Services.AddDbContext<InstagramDb>(options => options.UseNpgsql(connection))
+    .AddIdentity<User, IdentityRole<int>>()
+    .AddEntityFrameworkStores<InstagramDb>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -23,7 +26,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
