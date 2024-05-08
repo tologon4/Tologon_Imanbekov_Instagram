@@ -1,13 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Mvc.TagHelpers
-@{ 
-    var user= userManager.FindByNameAsync(User.Identity.Name);
-    var result = "";
-    if(user!=null && signInManager.IsSignedIn(User))
-    {
-        result = user.Result.Avatar;
-    }
-}
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -29,52 +22,63 @@
 @inject SignInManager<User> signInManager;
 @inject UserManager<User> userManager;
 <div class="container-fluid ">
-    <main role="main" class="pb-3">
-        <div class="row row-cols-2 ">
-            <div class="col col-2 buttons position-fixed">
-                <div class="row row-cols-1">
-                    <div class="col ">
-                        <img class="w-75 mt-2" src="../images/logo2.png"/>
+    <div class="row row-cols-2 ">
+        <div class="col col-2 buttons position-fixed  border-end">
+            <div class="row row-cols-1">
+                <div class="col ">
+                    <img class="w-75 mt-2" src="../images/logo2.png"/>
+                </div>
+                <div class="nav flex-column ms-3 mt-4" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    <a asp-action="Home" asp-controller="Account" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3 ">
+                        <i class=""><img class="w-25" src="../images/home.png"/></i><span class="ms-3">Home</span>
+                    </a>
+                    <a href="#" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
+                        <i class=""><img class="w-25" src="../images/search.png"/></i><span class="ms-3">Search</span>
+                    </a>
+                    <a href="#" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
+                        <i class=""><img class="w-25" src="../images/social.png"/></i><span class="ms-3">Explore</span>
+                    </a>
+                    <a href="#" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
+                        <i class=""><img class="w-25" src="../images/add.png"/></i><span class="ms-3">Create</span>
+                    </a>
+                    <a asp-action="Profile" asp-controller="Account" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
+                        <i class=""><img class="w-25 rounded-circle" src="@UserAvatarGet()"/></i><span class="ms-3">Profile</span>
+                    </a>
+                    <div class="btn-group dropup">
+                        <a class="btn  border border-0 dropdown-toggle btn-outline-light nav-link text-start text-dark mt-4" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img class="w-25 " src="../images/menu.png"/><span class="ms-3">More</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><form method="post" asp-controller="Account" asp-action="LogOut"><input type="submit" value="Log out" class="dropdown-item nav-link text-dark"/></form></li>
+                        </ul>
                     </div>
-                    <div class="nav flex-column ms-3 mt-4" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                        <a href="#" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3 ">
-                            <i class=""><img class="w-25" src="../images/home.png"/></i><span class="ms-3">Home</span>
-                        </a>
-                        <a href="#" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
-                            <i class=""><img class="w-25" src="../images/search.png"/></i><span class="ms-3">Search</span>
-                        </a>
-                        <a href="#" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
-                            <i class=""><img class="w-25" src="../images/social.png"/></i><span class="ms-3">Explore</span>
-                        </a>
-                        <a href="#" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
-                            <i class=""><img class="w-25" src="../images/add.png"/></i><span class="ms-3">Create</span>
-                        </a>
-                        <a href="#" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
-                            <i class=""><img class="w-25 rounded-circle" src="@result"/></i><span class="ms-3">Profile</span>
-                        </a>
-                        <div class="btn-group dropup">
-                            <a class="btn  border border-0 dropdown-toggle btn-outline-light nav-link text-start text-dark mt-auto" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img class="w-25 " src="../images/menu.png"/><span class="ms-3">More</span>
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><form method="post" asp-controller="Account" asp-action="LogOut"><input type="submit" value="Log out" class="dropdown-item nav-link text-dark"/></form></li>
-                            </ul>
-                        </div>
-                        
-                    </div>
+                                            
                 </div>
             </div>
-            <div class="col col-10">
-                @RenderBody()
-            </div>
         </div>
-    </main>
+        <div class="col col-10 offset-2">
+            @RenderBody()
+        </div>
+    </div>
 </div>
 </body>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
-
+@functions
+{
+    public string UserAvatarGet()
+    {
+        var user= userManager.FindByNameAsync(User.Identity.Name);
+        var result = "";
+        if(user!=null && signInManager.IsSignedIn(User))
+        {
+            result = user.Result.Avatar;
+        }
+        return result;
+    }
+    
+}
 </html>
 

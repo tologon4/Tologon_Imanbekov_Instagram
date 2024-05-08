@@ -1,0 +1,27 @@
+@model User
+
+@{
+    ViewBag.Title = "Instagram";
+    Layout = "_Layout";
+}
+
+<div class="row g-0 pt-5">
+    <div class="col-md-4 text-center">
+        <img src="@Model.Avatar" class="rounded-circle w-50 mx-auto ">
+    </div>
+    <div class="col-md-8">
+        <div class="card-body">
+            <div class="row">
+                <div class=" col col-3"><h5>@Model.UserName</h5></div>
+                <div class="col col-9"><a class="btn btn-light me-auto" asp-action="" asp-controller="Account">Edit profile</a></div>
+                <div class="col col-4 mt-4">posts</div>
+                <div class="col col-4 mt-4">followers</div>
+                <div class="col col-4 mt-4">following</div>
+                <div class="col col-12 mt-4"><h5>@Model.FullName</h5></div>
+            </div>
+                
+        </div>
+    </div>
+</div>
+
+

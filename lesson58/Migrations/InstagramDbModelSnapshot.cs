@@ -154,19 +154,27 @@ namespace lesson58.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("UserUser", b =>
+            modelBuilder.Entity("lesson58.Models.SubAndSub", b =>
                 {
-                    b.Property<int>("SubscribersId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    b.Property<int>("SubscribtionsId")
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("SubcriberId")
                         .HasColumnType("integer");
 
-                    b.HasKey("SubscribersId", "SubscribtionsId");
+                    b.Property<int?>("SubcribtionId")
+                        .HasColumnType("integer");
 
-                    b.HasIndex("SubscribtionsId");
+                    b.HasKey("Id");
 
-                    b.ToTable("UserUser");
+                    b.HasIndex("SubcriberId");
+
+                    b.HasIndex("SubcribtionId");
+
+                    b.ToTable("SubAndSubs");
                 });
 
             modelBuilder.Entity("lesson58.Models.User", b =>
@@ -225,8 +233,17 @@ namespace lesson58.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<int?>("PostCount")
+                        .HasColumnType("integer");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
+
+                    b.Property<int?>("SubscribersCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SubscribtionsCount")
+                        .HasColumnType("integer");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
@@ -301,19 +318,28 @@ namespace lesson58.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("UserUser", b =>
+            modelBuilder.Entity("lesson58.Models.SubAndSub", b =>
                 {
-                    b.HasOne("lesson58.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("SubscribersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("lesson58.Models.User", "Subcriber")
+                        .WithMany("Subscribers")
+                        .HasForeignKey("SubcriberId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("lesson58.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("SubscribtionsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("lesson58.Models.User", "Subcribtion")
+                        .WithMany("Subscribtions")
+                        .HasForeignKey("SubcribtionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Subcriber");
+
+                    b.Navigation("Subcribtion");
+                });
+
+            modelBuilder.Entity("lesson58.Models.User", b =>
+                {
+                    b.Navigation("Subscribers");
+
+                    b.Navigation("Subscribtions");
                 });
 #pragma warning restore 612, 618
         }

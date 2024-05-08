@@ -12,16 +12,23 @@ public class AccountController : Controller
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly IWebHostEnvironment _environment;
-
-    public IActionResult Home()
-    {
-        return View();
-    }
-    public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IWebHostEnvironment environment)
+    private InstagramDb _db;
+    
+    public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IWebHostEnvironment environment, InstagramDb db)
     {
         _signInManager = signInManager;
         _userManager = userManager;
         _environment = environment;
+        _db = db;
+    }
+    public IActionResult Profile()
+    {
+        User user = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        return View(user);
+    }
+    public IActionResult Home()
+    {
+        return View(_db.Users.ToList());
     }
     public IActionResult Login(string? returnUrl = null)
     {
