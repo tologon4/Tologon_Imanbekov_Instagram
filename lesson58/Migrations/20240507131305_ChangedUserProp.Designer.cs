@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using lesson58.Models;
@@ -11,9 +12,11 @@ using lesson58.Models;
 namespace lesson58.Migrations
 {
     [DbContext(typeof(InstagramDb))]
-    partial class InstagramDbModelSnapshot : ModelSnapshot
+    [Migration("20240507131305_ChangedUserProp")]
+    partial class ChangedUserProp
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -154,58 +157,19 @@ namespace lesson58.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("lesson58.Models.Post", b =>
+            modelBuilder.Entity("UserUser", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("SubscribersId")
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("CommentCount")
+                    b.Property<int>("SubscribtionsId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
+                    b.HasKey("SubscribersId", "SubscribtionsId");
 
-                    b.Property<string>("FilePath")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.HasIndex("SubscribtionsId");
 
-                    b.Property<int?>("LikesCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("OwnerUserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OwnerUserId");
-
-                    b.ToTable("Posts");
-                });
-
-            modelBuilder.Entity("lesson58.Models.SubAndSub", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("SubcriberId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("SubcribtionId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SubcriberId");
-
-                    b.HasIndex("SubcribtionId");
-
-                    b.ToTable("SubAndSubs");
+                    b.ToTable("UserUser");
                 });
 
             modelBuilder.Entity("lesson58.Models.User", b =>
@@ -264,17 +228,8 @@ namespace lesson58.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<int?>("PostCount")
-                        .HasColumnType("integer");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
-
-                    b.Property<int?>("SubscribersCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("SubscribtionsCount")
-                        .HasColumnType("integer");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
@@ -296,47 +251,6 @@ namespace lesson58.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("lesson58.Models.UserPostComm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("PostId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserPostComms");
-                });
-
-            modelBuilder.Entity("lesson58.Models.UserPostLike", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PostId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("integer");
-
-                    b.HasKey("UserId", "PostId");
-
-                    b.HasIndex("PostId");
-
-                    b.ToTable("UserPostLikes");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -390,90 +304,19 @@ namespace lesson58.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("lesson58.Models.Post", b =>
+            modelBuilder.Entity("UserUser", b =>
                 {
-                    b.HasOne("lesson58.Models.User", "OwnerUser")
-                        .WithMany("Posts")
-                        .HasForeignKey("OwnerUserId")
+                    b.HasOne("lesson58.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("SubscribersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("OwnerUser");
-                });
-
-            modelBuilder.Entity("lesson58.Models.SubAndSub", b =>
-                {
-                    b.HasOne("lesson58.Models.User", "Subcriber")
-                        .WithMany("Subscribers")
-                        .HasForeignKey("SubcriberId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("lesson58.Models.User", "Subcribtion")
-                        .WithMany("Subscribtions")
-                        .HasForeignKey("SubcribtionId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("Subcriber");
-
-                    b.Navigation("Subcribtion");
-                });
-
-            modelBuilder.Entity("lesson58.Models.UserPostComm", b =>
-                {
-                    b.HasOne("lesson58.Models.Post", "Post")
-                        .WithMany("CommentUsers")
-                        .HasForeignKey("PostId")
+                    b.HasOne("lesson58.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("SubscribtionsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("lesson58.Models.User", "User")
-                        .WithMany("Comments")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("lesson58.Models.UserPostLike", b =>
-                {
-                    b.HasOne("lesson58.Models.Post", "Post")
-                        .WithMany("LikeUsers")
-                        .HasForeignKey("PostId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("lesson58.Models.User", "User")
-                        .WithMany("Likes")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Post");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("lesson58.Models.Post", b =>
-                {
-                    b.Navigation("CommentUsers");
-
-                    b.Navigation("LikeUsers");
-                });
-
-            modelBuilder.Entity("lesson58.Models.User", b =>
-                {
-                    b.Navigation("Comments");
-
-                    b.Navigation("Likes");
-
-                    b.Navigation("Posts");
-
-                    b.Navigation("Subscribers");
-
-                    b.Navigation("Subscribtions");
                 });
 #pragma warning restore 612, 618
         }

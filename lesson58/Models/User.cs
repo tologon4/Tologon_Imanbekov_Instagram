@@ -10,6 +10,9 @@ public class User : IdentityUser<int>
     public string Gender { get; set; }
     public ICollection<SubAndSub> Subscribers { get; set; }
     public ICollection<SubAndSub> Subscribtions { get; set; }
+    public ICollection<Post>? Posts { get; set; }
+    public ICollection<UserPostLike>? Likes { get; set; }
+    public ICollection<UserPostComm>? Comments { get; set; }
     public int? PostCount { get; set; }
     public int? SubscribersCount { get; set; }
     public int? SubscribtionsCount { get; set; }

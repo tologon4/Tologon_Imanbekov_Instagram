@@ -2,6 +2,7 @@ using lesson58.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
@@ -13,7 +14,6 @@ public class AccountController : Controller
     private readonly SignInManager<User> _signInManager;
     private readonly IWebHostEnvironment _environment;
     private InstagramDb _db;
-    
     public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IWebHostEnvironment environment, InstagramDb db)
     {
         _signInManager = signInManager;
@@ -21,14 +21,16 @@ public class AccountController : Controller
         _environment = environment;
         _db = db;
     }
-    public IActionResult Profile()
+    
+    public IActionResult Profile(int? id)
     {
-        User user = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        User? user = _db.Users.Include(p => p.Posts).FirstOrDefault(u => u.Id == id);
         return View(user);
     }
+    
     public IActionResult Home()
     {
-        return View(_db.Users.ToList());
+        return View(_db.Users.Where(u=> u.Id != int.Parse(_userManager.GetUserId(User))).ToList());
     }
     public IActionResult Login(string? returnUrl = null)
     {
@@ -89,7 +91,10 @@ public class AccountController : Controller
                 UserName = model.UserName,
                 PhoneNumber = model.PhoneNumber,
                 Gender = model.Gender,
-                Avatar = path
+                Avatar = path,
+                PostCount = 0,
+                SubscribersCount = 0,
+                SubscribtionsCount = 0
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)

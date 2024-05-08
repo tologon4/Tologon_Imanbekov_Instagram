@@ -1,15 +1,40 @@
+@using Microsoft.AspNetCore.Identity
 @model List<User>
 
 @{
     ViewBag.Title = "title";
     Layout = "_Layout";
 }
-
+@inject SignInManager<User> signInManager;
+@inject UserManager<User> userManager;
 <div class="row row-cols-2">
     <div class="col col-8">
     
     </div>
     <div class="col col-4">
-        
+        <div class="nav flex-column ms-3 mt-4" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+            <a asp-action="Profile" asp-controller="Account" asp-route-id="@CurrentUserGet().Id" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-2">
+                <i class=""><img width="50" height="50" class="rounded-circle" src="@CurrentUserGet().Avatar"/></i><span class="ms-3">@CurrentUserGet().UserName</span>
+            </a>
+            <p class="text-secondary fs-5"> Suggested for you</p>
+            @foreach (var user in @Model)
+            {
+                <a asp-action="Profile" asp-controller="Account" asp-route-id="@user.Id" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-2">
+                    <i class=""><img width="50" height="50"  class="rounded-circle" src="@user.Avatar"/></i><span class="ms-3">@user.UserName</span>
+                </a>
+            }
+        </div>
     </div>
 </div>
+@functions
+{
+    public User CurrentUserGet()
+    {
+        var user= userManager.FindByNameAsync(User.Identity.Name);
+        User result = new User();
+        if(user!=null && signInManager.IsSignedIn(User))
+            result = user.Result;
+        return result;
+    }
+    
+}

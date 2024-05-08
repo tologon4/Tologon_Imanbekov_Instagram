@@ -1,0 +1,40 @@
+@model Post
+
+@{
+    ViewBag.Title = "Instagram";
+    Layout = "_Layout";
+}
+
+<div class="row mt-5">
+    <div class="row row-cols-1 mx-auto text-center">
+        <h5>Create new post</h5>
+        <div class="validation text-danger" asp-validation-summary="ModelOnly"></div>
+            <form asp-action="Create" asp-controller="Post" method="post" asp-anti-forgery="true" enctype="multipart/form-data">
+                <div class="col col-6 mx-auto">
+                    <div class="mt-2">
+                        <label for="file">Choose photo</label>
+                        <input id="file" type="file" name="uploadedFile" class="form-control" required="required">
+                    </div>
+                </div>
+                <div class="col col-6 mt-3 mx-auto">
+                    <div class="form_row">
+                        <label for="">Description<span class="text-danger" asp-validation-for="@Model.Description"></span>
+                            <textarea class="form-control form-control-lg  h-100" asp-for="Description" type="text" rows="4"></textarea>
+                        </label>
+                    </div>
+                </div>
+                <div class="col col-3 mx-auto">
+                    <input type="hidden" asp-for="OwnerUserId" value="@ViewBag.UserId"/>
+                    <button type="submit" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
+                        <i class=""><img class="w-25" src="~/images/add.png"/></i><span class="ms-3">Create a new post</span>
+                    </button>
+                </div>
+            </form>
+    </div>
+
+</div>
+@section Scripts{
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

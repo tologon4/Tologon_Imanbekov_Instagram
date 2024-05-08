@@ -6,22 +6,30 @@
 }
 
 <div class="row g-0 pt-5">
-    <div class="col-md-4 text-center">
-        <img src="@Model.Avatar" class="rounded-circle w-50 mx-auto ">
+    <div class="col-md-4 pb-5 text-center border-bottom">
+        <img src="@Model.Avatar" width="200" height="200" class="rounded-circle mx-auto ">
     </div>
-    <div class="col-md-8">
+    <div class="col-md-8 border-bottom">
         <div class="card-body">
-            <div class="row">
+            <div class="row ">
                 <div class=" col col-3"><h5>@Model.UserName</h5></div>
-                <div class="col col-9"><a class="btn btn-light me-auto" asp-action="" asp-controller="Account">Edit profile</a></div>
+                <div class="col col-9 d-flex"><a class="my-auto btn btn-light me-auto" asp-action="" asp-controller="Account">Edit profile</a></div>
                 <div class="col col-4 mt-4">posts</div>
                 <div class="col col-4 mt-4">followers</div>
                 <div class="col col-4 mt-4">following</div>
                 <div class="col col-12 mt-4"><h5>@Model.FullName</h5></div>
             </div>
-                
+        </div>
+    </div>
+    <div class="col col-12 mt-5 px-3">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+            @foreach (var post in @Model.Posts)
+            {
+                <div class="col justify-content-center align-items-center">
+                    <img class="w-100 img-fluid  rounded-0" style="height: 270px;" src="@post.FilePath"/>
+                </div>
+            }
         </div>
     </div>
 </div>
-
 
