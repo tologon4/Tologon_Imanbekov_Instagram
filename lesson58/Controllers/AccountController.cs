@@ -23,16 +23,60 @@ public class AccountController : Controller
         _environment = environment;
         _db = db;
     }
-    
+
+    public IActionResult Follow(int? id)
+    {
+        User? followToUser = _db.Users.Include(p => p.Followers).FirstOrDefault(u => u.Id == id);
+        User? curUser = _db.Users.Include(p => p.Followings).FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+
+        bool Answer()
+        {
+            int res = 0;
+            if (followToUser.Followers.Count == 0)
+                res = 0;
+            else
+                foreach (var rel in followToUser.Followers)
+                    if (rel.FollowToId == followToUser.Id)
+                        if (rel.FollowFromId == curUser.Id)
+                            res++;
+            return res >= 1 ? false : true;
+        }
+        if (Answer()==true)
+        {
+            SubAndSub relation = new SubAndSub()
+            {
+                FollowToId = followToUser.Id, 
+                FollowTo = followToUser, 
+                FollowFromId = curUser.Id, 
+                FollowFrom = curUser
+            };
+            curUser.FollowingsCount ++;
+            followToUser.FollowersCount++;
+            curUser.Followings.Add(relation);
+            followToUser.Followers.Add(relation);
+            _db.SubAndSubs.Add(relation);
+            _db.Users.Update(curUser);
+            _db.Users.Update(followToUser);
+            _db.SaveChanges();
+        }
+        return RedirectToAction("Profile", new {id = followToUser.Id});
+    }
     public IActionResult Profile(int? id)
     {
+        ViewBag.CurrentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
         User? user = _db.Users.Include(p => p.Posts).FirstOrDefault(u => u.Id == id);
         return View(user);
     }
     
     public IActionResult Home()
     {
-        return View(_db.Users.Where(u=> u.Id != int.Parse(_userManager.GetUserId(User))).ToList());
+        User currentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        ViewBag.CurrentUser = currentUser;
+        List<User> suggest = _db.Users
+            .Include(u => u.Followers)
+            .Where(u => u.Id != currentUser.Id && !u.Followers.Any(f => f.FollowFromId == currentUser.Id))
+            .ToList();        
+        return View(suggest);
     }
     public IActionResult Login(string? returnUrl = null)
     {
@@ -128,7 +172,6 @@ public class AccountController : Controller
         return View(user);
     }
     
-    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Edit(EditViewModel model, IFormFile? uploadedFile)
     {
@@ -158,8 +201,9 @@ public class AccountController : Controller
             user.UserInfo = model.UserInfo;
             user.PasswordHash = model.Password != null ? _userManager.PasswordHasher.HashPassword(user, model.Password) : user.PasswordHash;
             await _userManager.UpdateAsync(user);
+            _db.Users.Update(user);
             await _db.SaveChangesAsync();
-            return RedirectToAction("Home");
+            return RedirectToAction("Profile", new {id=user.Id});
         }
         ModelState.AddModelError("", "Something went wrong! Please check all info");
         return View(model);

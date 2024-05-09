@@ -193,17 +193,17 @@ namespace lesson58.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("FollowerId")
+                    b.Property<int?>("FollowFromId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("FollowingId")
+                    b.Property<int?>("FollowToId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("FollowerId");
+                    b.HasIndex("FollowFromId");
 
-                    b.HasIndex("FollowingId");
+                    b.HasIndex("FollowToId");
 
                     b.ToTable("SubAndSubs");
                 });
@@ -240,11 +240,9 @@ namespace lesson58.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("FullName")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Gender")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("LockoutEnabled")
@@ -401,19 +399,19 @@ namespace lesson58.Migrations
 
             modelBuilder.Entity("lesson58.Models.SubAndSub", b =>
                 {
-                    b.HasOne("lesson58.Models.User", "Follower")
-                        .WithMany("Followers")
-                        .HasForeignKey("FollowerId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("lesson58.Models.User", "Following")
+                    b.HasOne("lesson58.Models.User", "FollowFrom")
                         .WithMany("Followings")
-                        .HasForeignKey("FollowingId")
+                        .HasForeignKey("FollowFromId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Navigation("Follower");
+                    b.HasOne("lesson58.Models.User", "FollowTo")
+                        .WithMany("Followers")
+                        .HasForeignKey("FollowToId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Navigation("Following");
+                    b.Navigation("FollowFrom");
+
+                    b.Navigation("FollowTo");
                 });
 
             modelBuilder.Entity("lesson58.Models.UserPostComm", b =>

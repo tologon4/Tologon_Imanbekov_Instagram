@@ -41,6 +41,8 @@ public class PostController : Controller
             post.FilePath = path;
             post.LikesCount = 0;
             post.CommentCount = 0;
+            user.PostCount++;
+            user.Posts.Add(post);
             _db.Posts.Add(post);
             _db.SaveChanges();
             return RedirectToAction("Profile", "Account", new {id = user.Id});

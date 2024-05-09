@@ -19,13 +19,14 @@ public class InstagramDb : IdentityDbContext<User, IdentityRole<int>, int>
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<User>()
             .HasMany<SubAndSub>(subTo => subTo.Followings)
-            .WithOne(u => u.Following)
-            .HasForeignKey(s => s.FollowingId)
+            .WithOne(u => u.FollowFrom)
+            .HasForeignKey(s => s.FollowFromId)
             .OnDelete(DeleteBehavior.NoAction);
+        
         modelBuilder.Entity<User>()
             .HasMany<SubAndSub>(subFrom => subFrom.Followers)
-            .WithOne(u => u.Follower)
-            .HasForeignKey(s => s.FollowerId)
+            .WithOne(u => u.FollowTo)
+            .HasForeignKey(s => s.FollowToId)
             .OnDelete(DeleteBehavior.NoAction);
         
         modelBuilder.Entity<User>()
