@@ -3,22 +3,20 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace lesson58.Models;
 
-public class RegisterViewModel
+public class EditViewModel
 {
     [Required(ErrorMessage = "Please provide a FullName")]
     public string FullName { get; set; }
     [Required(ErrorMessage = "Please provide an Email")]
-    [Remote(action: "CheckEmail", controller:"Validation", ErrorMessage = "This email is busy! Try again")]
+    [Remote(action: "EditCheckEmail", controller:"Validation", ErrorMessage = "This email is busy! Try again")]
     public string Email { get; set; }
-    [Required(ErrorMessage = "Please provide a Password")]
     [DataType(DataType.Password)]
-    public string Password { get; set; }
-    [Required(ErrorMessage = "Please provide a Confirm Password")]
+    public string? Password { get; set; }
     [DataType(DataType.Password)]
     [Compare("Password", ErrorMessage = "Confirm Password is invalid! Try again")]
-    public string ConfirmPassword { get; set; }
+    public string? ConfirmPassword { get; set; }
     [Required(ErrorMessage = "Please provide a Username")]
-    [Remote(action: "CheckUsername", controller:"Validation", ErrorMessage = "This username is busy! Try again")]
+    [Remote(action: "EditCheckUsername", controller:"Validation", ErrorMessage = "This username is busy! Try again")]
     [RegularExpression(@"^\S+(?:\S+)?$", ErrorMessage = "Provide with no space!")]
     public string UserName { get; set; }
     [Required(ErrorMessage = "Please provide a Phone Number")]

@@ -166,16 +166,16 @@ namespace lesson58.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("FilePath")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int?>("LikesCount")
                         .HasColumnType("integer");
 
-                    b.Property<int>("OwnerUserId")
+                    b.Property<int?>("OwnerUserId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
@@ -193,17 +193,17 @@ namespace lesson58.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("SubcriberId")
+                    b.Property<int?>("FollowerId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("SubcribtionId")
+                    b.Property<int?>("FollowingId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SubcriberId");
+                    b.HasIndex("FollowerId");
 
-                    b.HasIndex("SubcribtionId");
+                    b.HasIndex("FollowingId");
 
                     b.ToTable("SubAndSubs");
                 });
@@ -232,6 +232,12 @@ namespace lesson58.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
+
+                    b.Property<int?>("FollowersCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FollowingsCount")
+                        .HasColumnType("integer");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -269,12 +275,6 @@ namespace lesson58.Migrations
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
-
-                    b.Property<int?>("SubscribersCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("SubscribtionsCount")
-                        .HasColumnType("integer");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
@@ -394,28 +394,26 @@ namespace lesson58.Migrations
                 {
                     b.HasOne("lesson58.Models.User", "OwnerUser")
                         .WithMany("Posts")
-                        .HasForeignKey("OwnerUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("OwnerUserId");
 
                     b.Navigation("OwnerUser");
                 });
 
             modelBuilder.Entity("lesson58.Models.SubAndSub", b =>
                 {
-                    b.HasOne("lesson58.Models.User", "Subcriber")
-                        .WithMany("Subscribers")
-                        .HasForeignKey("SubcriberId")
+                    b.HasOne("lesson58.Models.User", "Follower")
+                        .WithMany("Followers")
+                        .HasForeignKey("FollowerId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("lesson58.Models.User", "Subcribtion")
-                        .WithMany("Subscribtions")
-                        .HasForeignKey("SubcribtionId")
+                    b.HasOne("lesson58.Models.User", "Following")
+                        .WithMany("Followings")
+                        .HasForeignKey("FollowingId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Navigation("Subcriber");
+                    b.Navigation("Follower");
 
-                    b.Navigation("Subcribtion");
+                    b.Navigation("Following");
                 });
 
             modelBuilder.Entity("lesson58.Models.UserPostComm", b =>
@@ -467,13 +465,13 @@ namespace lesson58.Migrations
                 {
                     b.Navigation("Comments");
 
+                    b.Navigation("Followers");
+
+                    b.Navigation("Followings");
+
                     b.Navigation("Likes");
 
                     b.Navigation("Posts");
-
-                    b.Navigation("Subscribers");
-
-                    b.Navigation("Subscribtions");
                 });
 #pragma warning restore 612, 618
         }

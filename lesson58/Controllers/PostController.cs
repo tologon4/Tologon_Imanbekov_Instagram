@@ -32,7 +32,7 @@ public class PostController : Controller
         ViewBag.UserId = user.Id;
         if (ModelState.IsValid)
         {
-            string newFileName = Path.ChangeExtension($"{user.UserName.Trim()}-PostN{user.Posts.Count}", Path.GetExtension(uploadedFile.FileName));
+            string newFileName = Path.ChangeExtension($"{user.UserName.Trim()}-PostN={user.Posts.Count}", Path.GetExtension(uploadedFile.FileName));
             string path= $"/userImages/" + newFileName.Trim();
             using (var fileStream = new FileStream(_environment.WebRootPath + path, FileMode.Create))
             {
@@ -42,7 +42,7 @@ public class PostController : Controller
             post.LikesCount = 0;
             post.CommentCount = 0;
             _db.Posts.Add(post);
-            _db.SaveChangesAsync();
+            _db.SaveChanges();
             return RedirectToAction("Profile", "Account", new {id = user.Id});
         }
         return View(post);

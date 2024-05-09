@@ -8,12 +8,12 @@ public class User : IdentityUser<int>
     public string FullName { get; set; }
     public string? UserInfo { get; set; }
     public string Gender { get; set; }
-    public ICollection<SubAndSub> Subscribers { get; set; }
-    public ICollection<SubAndSub> Subscribtions { get; set; }
+    public ICollection<SubAndSub> Followers { get; set; }
+    public ICollection<SubAndSub> Followings { get; set; }
     public ICollection<Post>? Posts { get; set; }
     public ICollection<UserPostLike>? Likes { get; set; }
     public ICollection<UserPostComm>? Comments { get; set; }
     public int? PostCount { get; set; }
-    public int? SubscribersCount { get; set; }
-    public int? SubscribtionsCount { get; set; }
+    public int? FollowersCount { get; set; }
+    public int? FollowingsCount { get; set; }
 }

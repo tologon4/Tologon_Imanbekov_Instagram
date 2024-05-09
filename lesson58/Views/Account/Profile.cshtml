@@ -1,10 +1,13 @@
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Mvc.TagHelpers
 @model User
 
 @{
     ViewBag.Title = "Instagram";
     Layout = "_Layout";
 }
-
+@inject SignInManager<User> signInManager;
+@inject UserManager<User> userManager;
 <div class="row g-0 pt-5">
     <div class="col-md-4 pb-5 text-center border-bottom">
         <img src="@Model.Avatar" width="200" height="200" class="rounded-circle mx-auto ">
@@ -13,11 +16,15 @@
         <div class="card-body">
             <div class="row ">
                 <div class=" col col-3"><h5>@Model.UserName</h5></div>
-                <div class="col col-9 d-flex"><a class="my-auto btn btn-light me-auto" asp-action="" asp-controller="Account">Edit profile</a></div>
-                <div class="col col-4 mt-4">posts</div>
-                <div class="col col-4 mt-4">followers</div>
-                <div class="col col-4 mt-4">following</div>
+                @if (CurrentUserGet().Id == @Model.Id) { <div class="col col-9 d-flex"><a class="my-auto btn btn-light me-auto" asp-action="Edit" asp-controller="Account">Edit profile</a></div> }
+                @if (CurrentUserGet().Id != @Model.Id) { <div class="col col-9 d-flex"><a class="my-auto btn btn-primary me-auto" asp-action="Follow" asp-controller="Account">Follow</a></div> }
+                <div class="col col-4 mt-4"><b>@Model.PostCount</b>posts</div>
+                <div class="col col-4 mt-4"><b>@Model.FollowersCount</b>followers</div>
+                <div class="col col-4 mt-4"><b>@Model.FollowingsCount</b>following</div>
                 <div class="col col-12 mt-4"><h5>@Model.FullName</h5></div>
+                <div class="col col-12 mt-4">
+                    <b>My Bio</b><br/>@Model.UserInfo
+                </div>
             </div>
         </div>
     </div>
@@ -32,4 +39,15 @@
         </div>
     </div>
 </div>
-
+@functions
+{
+    public User CurrentUserGet()
+    {
+        var user= userManager.FindByNameAsync(User.Identity.Name);
+        User result = new User();
+        if(user!=null && signInManager.IsSignedIn(User))
+            result = user.Result;
+        return result;
+    }
+    
+}

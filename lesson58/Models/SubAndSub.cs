@@ -4,11 +4,11 @@ public class SubAndSub
 {
     public int Id { get; set; }
     
-    public int? SubcribtionId { get; set; }
-    public User? Subcribtion { get; set; }
+    public int? FollowingId { get; set; }
+    public User? Following { get; set; }
     
-    public int? SubcriberId { get; set; }
-    public User? Subcriber { get; set; }
+    public int? FollowerId { get; set; }
+    public User? Follower { get; set; }
     
     
 }

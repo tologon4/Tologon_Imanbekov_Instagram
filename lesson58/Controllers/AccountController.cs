@@ -1,4 +1,6 @@
+using System.Net;
 using lesson58.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -78,7 +80,7 @@ public class AccountController : Controller
         ViewBag.Genders = new string[] { "Male", "Female"};
         if (ModelState.IsValid)
         {
-            string newFileName = Path.ChangeExtension(model.UserName.Trim(), Path.GetExtension(uploadedFile.FileName));
+            string newFileName = Path.ChangeExtension($"{model.UserName.Trim()}-ProfileN=1", Path.GetExtension(uploadedFile.FileName));
             string path= $"/userImages/" + newFileName.Trim();
             using (var fileStream = new FileStream(_environment.WebRootPath + path, FileMode.Create))
             {
@@ -90,11 +92,12 @@ public class AccountController : Controller
                 FullName = model.FullName,
                 UserName = model.UserName,
                 PhoneNumber = model.PhoneNumber,
+                UserInfo = model.UserInfo,
                 Gender = model.Gender,
                 Avatar = path,
                 PostCount = 0,
-                SubscribersCount = 0,
-                SubscribtionsCount = 0
+                FollowersCount = 0,
+                FollowingsCount = 0
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
@@ -104,6 +107,59 @@ public class AccountController : Controller
             }
             foreach (var error in result.Errors)
                 ModelState.AddModelError(string.Empty, error.Description);
+        }
+        ModelState.AddModelError("", "Something went wrong! Please check all info");
+        return View(model);
+    }
+
+    public IActionResult Edit()
+    {
+        ViewBag.Genders = new string[] { "Male", "Female"};
+        User model = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        EditViewModel user = new EditViewModel()
+        {
+            Email = model.Email,
+            FullName = model.FullName,
+            UserName = model.UserName,
+            PhoneNumber = model.PhoneNumber,
+            UserInfo = model.UserInfo,
+            Gender = model.Gender
+        };
+        return View(user);
+    }
+    
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> Edit(EditViewModel model, IFormFile? uploadedFile)
+    {
+        ViewBag.Genders = new string[] { "Male", "Female"};
+        User user = _db.Users.FirstOrDefault(u=>u.Id==int.Parse(_userManager.GetUserId(User)));
+        var buffer = user.Avatar.Split('=');
+        var buffer2 = buffer[buffer.Length - 1].Split('.');
+        if (ModelState.IsValid)
+        {
+            string? path = null;
+            if (uploadedFile!=null)
+            {
+                string newFileName = Path.ChangeExtension($"{model.UserName.Trim()}-ProfileN={int.Parse(buffer2[0])+1}", Path.GetExtension(uploadedFile.FileName));
+                path= $"/userImages/" + newFileName.Trim();
+                using (var fileStream = new FileStream(_environment.WebRootPath + path, FileMode.Create))
+                {
+                    await uploadedFile.CopyToAsync(fileStream);
+                }
+            }
+            user.Id = user.Id;
+            user.Email = model.Email;
+            user.FullName = model.FullName;
+            user.UserName = model.UserName;
+            user.PhoneNumber = model.PhoneNumber;
+            user.Gender = model.Gender;
+            user.Avatar = path!= null ? path : user.Avatar;
+            user.UserInfo = model.UserInfo;
+            user.PasswordHash = model.Password != null ? _userManager.PasswordHasher.HashPassword(user, model.Password) : user.PasswordHash;
+            await _userManager.UpdateAsync(user);
+            await _db.SaveChangesAsync();
+            return RedirectToAction("Home");
         }
         ModelState.AddModelError("", "Something went wrong! Please check all info");
         return View(model);
