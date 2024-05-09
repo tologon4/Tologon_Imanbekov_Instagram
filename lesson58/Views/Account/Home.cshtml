@@ -1,5 +1,5 @@
 @using Microsoft.AspNetCore.Identity
-@model List<User>
+@model List<Post>
 
 @{
     ViewBag.Title = "title";
@@ -8,7 +8,30 @@
 
 <div class="row row-cols-2">
     <div class="col col-8">
-    
+        
+        <div class="row row-cols-1 g-4">
+            @foreach (var post in @Model)
+            {
+                <div class="col-8 mt-3 border-bottom pb-3 mx-auto">
+                    <div class="card border-0">
+                        <a asp-action="Profile" asp-controller="Account" asp-route-id="@post.OwnerUserId" class="btn border h-50 border-0 btn-outline-light nav-link text-start text-dark my-2">
+                            <i class=""><img width="50" height="50"  class="rounded-circle" src="@post.OwnerUser.Avatar"/></i><span class="ms-3">@post.OwnerUser.UserName</span> &nbsp; &nbsp; <span class="text-secondary">@AddedDateGet(@post.AddedDate)</span>
+                        </a>
+                        <img src="@post.FilePath" class="border-top card-img-top" alt="">
+                        <div class="card-body">
+                            <div class="col-2 me-auto text-start ps-0">
+                                <a asp-action="Like" asp-controller="Post" asp-route-userId="@post.OwnerUserId" asp-route-postId="@post.Id" class="btn border h-50 border-0 btn-outline-light nav-link me-auto">
+                                    <i class=""><img width="25" height="25" class="" src="~/images/heart.png"/></i>
+                                </a>
+                            </div>
+                            <p><b>@post.LikesCount &nbsp; likes</b> </p>
+                            <p> <a asp-action="Profile" class="text-dark link-underline link-underline-opacity-0" asp-route-id="@post.OwnerUserId"><b>@post.OwnerUser.UserName</b></a> &nbsp; @post.Description</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
     </div>
     <div class="col col-4">
         <div class="nav flex-column ms-3 mt-4" id="v-pills-tab" role="tablist" aria-orientation="vertical">
@@ -16,7 +39,7 @@
                 <i class=""><img width="50" height="50" class="rounded-circle" src="@ViewBag.CurrentUser.Avatar"/></i><span class="ms-3">@ViewBag.CurrentUser.UserName</span>
             </a>
             <p class="text-secondary fs-5"> Suggested for you</p>
-            @foreach (var user in @Model)
+            @foreach (var user in @ViewBag.SuggestedUsers)
             {
                 <a asp-action="Profile" asp-controller="Account" asp-route-id="@user.Id" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-2">
                     <i class=""><img width="50" height="50"  class="rounded-circle" src="@user.Avatar"/></i><span class="ms-3">@user.UserName</span>
@@ -25,3 +48,15 @@
         </div>
     </div>
 </div>
+@functions
+{
+    string AddedDateGet(DateTime? time)
+    {
+        TimeSpan result = (TimeSpan)(DateTime.UtcNow - time);
+        if (result.Hours <= 1)
+            return $"{result.ToString("mm")}m";
+        else if (result.Days < 1)
+            return $"{result.ToString("hh")}h";
+        return result.ToString("dd");
+    }
+}

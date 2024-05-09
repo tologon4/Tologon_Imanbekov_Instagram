@@ -23,7 +23,7 @@ public class AccountController : Controller
         _environment = environment;
         _db = db;
     }
-
+    
     public IActionResult Follow(int? id)
     {
         User? followToUser = _db.Users.Include(p => p.Followers).FirstOrDefault(u => u.Id == id);
@@ -72,11 +72,26 @@ public class AccountController : Controller
     {
         User currentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
         ViewBag.CurrentUser = currentUser;
-        List<User> suggest = _db.Users
+        ViewBag.SuggestedUsers = _db.Users
             .Include(u => u.Followers)
-            .Where(u => u.Id != currentUser.Id && !u.Followers.Any(f => f.FollowFromId == currentUser.Id))
-            .ToList();        
-        return View(suggest);
+            .Where(u => u.Id != currentUser.Id &&
+                        !u.Followers.Any(f => f.FollowFromId == currentUser.Id))
+            .ToList(); 
+        List<User> followingUsers = _db.Users.Include(p => p.Posts)
+             .Include(u => u.Followers)
+             .Where(u => u.Id != currentUser.Id &&
+                         u.Followers.Any(f => f.FollowFromId == currentUser.Id))
+             .ToList();
+        List<Post> posts = new List<Post>();
+            
+        foreach (var user in followingUsers)
+            if (user.Posts.Count>0)
+                foreach (var post in user.Posts)
+                    posts.Add(post);
+         
+        posts = posts.OrderByDescending(p => p.AddedDate).ToList();
+        
+        return View(posts);
     }
     public IActionResult Login(string? returnUrl = null)
     {

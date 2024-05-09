@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using lesson58.Models;
@@ -11,9 +12,11 @@ using lesson58.Models;
 namespace lesson58.Migrations
 {
     [DbContext(typeof(InstagramDb))]
-    partial class InstagramDbModelSnapshot : ModelSnapshot
+    [Migration("20240509112717_PostLikeLogic")]
+    partial class PostLikeLogic
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

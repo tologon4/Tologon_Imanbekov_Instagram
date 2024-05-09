@@ -10,8 +10,7 @@ public class Post
     public User? OwnerUser { get; set; }
     [Required(ErrorMessage = "Provide a description!")]
     public string Description { get; set; }
+    public DateTime? AddedDate { get; set; }
     public int? LikesCount { get; set; }
-    public int? CommentCount { get; set; }
     public ICollection<UserPostLike>? LikeUsers { get; set; }
-    public ICollection<UserPostComm>? CommentUsers { get; set; }
 }

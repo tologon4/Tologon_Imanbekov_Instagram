@@ -8,17 +8,54 @@ namespace lesson58.Controllers;
 public class PostController : Controller
 {
     private readonly UserManager<User> _userManager;
-    private readonly SignInManager<User> _signInManager;
     private InstagramDb _db;
     private IWebHostEnvironment _environment;
 
-    public PostController(UserManager<User> userManager, SignInManager<User> signInManager, InstagramDb db, IWebHostEnvironment environment)
+    public PostController(UserManager<User> userManager, InstagramDb db, IWebHostEnvironment environment)
     {
         _userManager = userManager;
-        _signInManager = signInManager;
         _db = db;
         _environment = environment;
     }
+    
+    
+    public IActionResult Like(int? userId, int? postId)
+    {
+        User? user = _db.Users.Include(p => p.Posts).FirstOrDefault(u => u.Id == userId);
+        User? curUser = _db.Users.Include(p => p.Likes).FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        Post? post = user.Posts.FirstOrDefault(p => p.Id == postId);
+        bool Answer()
+        {
+            int res = 0;
+            if (post.LikeUsers == null  || post.LikeUsers.Count == 0)
+                res = 0;
+            else
+                foreach (var usr in post.LikeUsers)
+                    if (usr.UserId == curUser.Id)
+                        res++;
+            return res >= 1 ? false : true;
+        }
+        if (Answer()==true)
+        {
+            UserPostLike relation = new UserPostLike()
+            {
+                PostId = post.Id,
+                Post = post,
+                UserId = curUser.Id,
+                User = curUser
+            };
+            post.LikesCount++;
+            curUser.Likes?.Add(relation);
+            post.LikeUsers?.Add(relation);
+            _db.UserPostLikes.Add(relation);
+            _db.Posts.Update(post);
+            _db.Users.Update(curUser);
+            _db.Users.Update(user);
+            _db.SaveChanges();
+        }
+        return RedirectToAction("Home" , "Account");
+    }
+    
     [HttpGet]
     public IActionResult Create()
     {
@@ -40,7 +77,7 @@ public class PostController : Controller
             }
             post.FilePath = path;
             post.LikesCount = 0;
-            post.CommentCount = 0;
+            post.AddedDate = DateTime.UtcNow;
             user.PostCount++;
             user.Posts.Add(post);
             _db.Posts.Add(post);

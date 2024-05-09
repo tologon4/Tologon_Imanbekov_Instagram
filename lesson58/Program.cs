@@ -13,6 +13,7 @@ builder.Services.AddDbContext<InstagramDb>(options => options.UseNpgsql(connecti
     .AddIdentity<User, IdentityRole<int>>()
     .AddEntityFrameworkStores<InstagramDb>();
 var app = builder.Build();
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
