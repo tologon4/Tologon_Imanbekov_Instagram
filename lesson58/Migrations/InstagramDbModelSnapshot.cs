@@ -299,6 +299,32 @@ namespace lesson58.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("lesson58.Models.UserPostComm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<int>("PostId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PostId");
+
+                    b.HasIndex("UserId", "PostId");
+
+                    b.ToTable("UserPostComms");
+                });
+
             modelBuilder.Entity("lesson58.Models.UserPostLike", b =>
                 {
                     b.Property<int>("UserId")
@@ -394,6 +420,25 @@ namespace lesson58.Migrations
                     b.Navigation("FollowTo");
                 });
 
+            modelBuilder.Entity("lesson58.Models.UserPostComm", b =>
+                {
+                    b.HasOne("lesson58.Models.Post", "Post")
+                        .WithMany("CommentUsers")
+                        .HasForeignKey("PostId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("lesson58.Models.User", "User")
+                        .WithMany("Comments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Post");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("lesson58.Models.UserPostLike", b =>
                 {
                     b.HasOne("lesson58.Models.Post", "Post")
@@ -415,11 +460,15 @@ namespace lesson58.Migrations
 
             modelBuilder.Entity("lesson58.Models.Post", b =>
                 {
+                    b.Navigation("CommentUsers");
+
                     b.Navigation("LikeUsers");
                 });
 
             modelBuilder.Entity("lesson58.Models.User", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("Followers");
 
                     b.Navigation("Followings");

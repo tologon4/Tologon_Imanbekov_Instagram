@@ -1,8 +1,84 @@
 @model Post
 
 @{
-    ViewBag.Title = "title";
+    ViewBag.Title = "Instagram";
     Layout = "_Layout";
 }
 
-<h2>title</h2>
+<div class="row g-0 pt-5">
+    <div class="col-md-4 pb-5 text-center border-bottom">
+        <img src="@Model.OwnerUser.Avatar" width="200" height="200" class="rounded-circle mx-auto ">
+    </div>
+    <div class="col-md-8 border-bottom">
+        <div class="card-body">
+            <div class="row ">
+                <div class=" col col-3"><h5>@Model.OwnerUser.UserName</h5></div>
+                @if (ViewBag.CurrentUser.Id == @Model.OwnerUserId) { <div class="col col-9 d-flex"><a class="my-auto btn btn-light me-auto" asp-action="Edit" asp-controller="Account">Edit profile</a></div> }
+                @if (ViewBag.CurrentUser.Id != @Model.OwnerUserId) { <div class="col col-9 d-flex"><a class="my-auto btn btn-info me-auto" asp-action="Follow" asp-route-id="@Model.Id" asp-controller="Account"><span class="text-white">Follow</span></a></div> }
+                <div class="col col-4 mt-4"><b>@Model.OwnerUser.PostCount</b> &nbsp; posts</div>
+                <div class="col col-4 mt-4"><b>@Model.OwnerUser.FollowersCount</b>&nbsp;followers</div>
+                <div class="col col-4 mt-4"><b>@Model.OwnerUser.FollowingsCount</b>&nbsp;following</div>
+                <div class="col col-12 mt-4"><h5>@Model.OwnerUser.FullName</h5></div>
+                <div class="col col-12 mt-4">
+                    <b>My Bio</b><br/>@Model.OwnerUser.UserInfo
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col col-12 mt-5 px-3">
+        <div class="row row-cols-sm-2">
+            <div class="col-md-6">
+                <img src="@Model.FilePath" class="w-100 rounded-start" alt="">
+            </div>
+            <div class="col-md-6 d-flex align-items-end flex-column">
+                <div class="col-12 border-bottom">
+                    <a asp-action="Profile" asp-controller="Account" asp-route-id="@Model.OwnerUserId" class="btn border h-50 border-0 btn-outline-light nav-link text-start text-dark my-2">
+                        <i class=""><img width="50" height="50" class="rounded-circle" src="@Model.OwnerUser.Avatar"/></i><b class="ms-3">@Model.OwnerUser.UserName</b>
+                    </a>
+                </div>
+                <div class="col-12">
+                    <div data-bs-spy="scroll" data-bs-target="#simple-list-example" data-bs-offset="0" data-bs-smooth-scroll="true" class="scrollspy-example" tabindex="0">
+                        <div class="alert my-0 py-0" role="alert">
+                            <a asp-action="Profile" asp-controller="Account" asp-route-id="@Model.OwnerUserId" class="btn border h-50 border-0 btn-outline-light nav-link text-start text-dark my-2">
+                                <i><img width="50" height="50" class="rounded-circle" src="@Model.OwnerUser.Avatar"/></i><b class="ms-3">@Model.OwnerUser.UserName</b> &nbsp;<span>@Model.Description</span>
+                            </a>
+                        </div>
+                        @foreach (var comm in @Model.CommentUsers)
+                        {
+                            <div class="alert my-0 py-0" role="alert">
+                                <a asp-action="Profile" asp-controller="Account" asp-route-id="@comm.UserId" class="btn border h-50 border-0 btn-outline-light nav-link text-start text-dark my-2">
+                                    <i><img width="50" height="50" class="rounded-circle" src="@comm.User.Avatar"/></i><b class="ms-3">@comm.User.UserName</b> &nbsp; @comm.Comment
+                                </a>
+                            </div> 
+                        }
+                    </div>
+                </div>
+                <div class="col-12 h-25 pb-0 mt-auto bg-transparent border-0" style="height: 160px">
+                    <div class="col-2 text-start ps-0">
+                        <a asp-action="Like" asp-controller="Post" asp-route-userId="@Model.OwnerUserId" asp-route-postId="@Model.Id" class="btn border h-50 border-0 btn-outline-light nav-link me-auto">
+                            <i class=""><img width="25" height="25" class="" src="~/images/heart.png"/></i>
+                        </a>
+                    </div>
+                    <p><b>@Model.LikesCount &nbsp; likes</b> </p>
+                    <p class="text-secondary">@DateGet(@Model.AddedDate) </p>
+                    <form asp-action="Comment" asp-controller="Post" method="post">
+                        <div class="input-group">
+                            <input name="comment" type="text" class="form-control" placeholder="Add a comment..." aria-label="Recipient's username" aria-describedby="button-addon2">
+                            <button class="btn btn-outline-light border-start-0 text-info" type="submit" id="button-addon2">Post</button>
+                        </div>
+                        <input name="userId" value="@Model.OwnerUserId" type="hidden"/>
+                        <input name="postId" value="@Model.Id" type="hidden"/>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions
+{
+    string DateGet(DateTime? date)
+    {
+        return $"{date?.ToString(" MMMM dd, yyyy")}";
+    }
+}

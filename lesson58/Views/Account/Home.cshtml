@@ -15,9 +15,11 @@
                 <div class="col-8 mt-3 border-bottom pb-3 mx-auto">
                     <div class="card border-0">
                         <a asp-action="Profile" asp-controller="Account" asp-route-id="@post.OwnerUserId" class="btn border h-50 border-0 btn-outline-light nav-link text-start text-dark my-2">
-                            <i class=""><img width="50" height="50"  class="rounded-circle" src="@post.OwnerUser.Avatar"/></i><span class="ms-3">@post.OwnerUser.UserName</span> &nbsp; &nbsp; <span class="text-secondary">@AddedDateGet(@post.AddedDate)</span>
+                            <i class=""><img width="50" height="50" class="rounded-circle" src="@post.OwnerUser.Avatar"/></i><b class="ms-3">@post.OwnerUser.UserName</b> &nbsp; &nbsp; <span class="text-secondary">@AddedDateGet(@post.AddedDate)</span>
                         </a>
-                        <img src="@post.FilePath" class="border-top card-img-top" alt="">
+                        <a asp-route-id="@post.Id" asp-action="Post" asp-controller="Post">
+                            <img src="@post.FilePath" class="border-top card-img-top" alt="">
+                        </a>
                         <div class="card-body">
                             <div class="col-2 me-auto text-start ps-0">
                                 <a asp-action="Like" asp-controller="Post" asp-route-userId="@post.OwnerUserId" asp-route-postId="@post.Id" class="btn border h-50 border-0 btn-outline-light nav-link me-auto">

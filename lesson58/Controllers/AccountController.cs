@@ -1,11 +1,7 @@
-using System.Net;
 using lesson58.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace lesson58.Controllers;
@@ -64,7 +60,7 @@ public class AccountController : Controller
     public IActionResult Profile(int? id)
     {
         ViewBag.CurrentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
-        User? user = _db.Users.Include(p => p.Posts).FirstOrDefault(u => u.Id == id);
+        User? user = _db.Users.Include(p => p.Posts).Include(l => l.Likes).Include(c => c.Comments).FirstOrDefault(u => u.Id == id);
         return View(user);
     }
     

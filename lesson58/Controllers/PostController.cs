@@ -10,17 +10,51 @@ public class PostController : Controller
     private readonly UserManager<User> _userManager;
     private InstagramDb _db;
     private IWebHostEnvironment _environment;
+    private IHttpContextAccessor _httpContextAccessor;
 
-    public PostController(UserManager<User> userManager, InstagramDb db, IWebHostEnvironment environment)
+    public PostController(UserManager<User> userManager, InstagramDb db, IWebHostEnvironment environment, IHttpContextAccessor contextAccessor)
     {
         _userManager = userManager;
         _db = db;
         _environment = environment;
+        _httpContextAccessor = contextAccessor;
     }
     
+    [HttpPost]
+    public IActionResult Comment(int? userId, int? postId, string? comment)
+    {
+        User? user = _db.Users.Include(p => p.Posts).FirstOrDefault(u => u.Id == userId);
+        User? curUser = _db.Users.Include(p => p.Comments).FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        Post? post = user.Posts.FirstOrDefault(p => p.Id == postId);
+        UserPostComm relation = new UserPostComm()
+        {
+            PostId = post.Id,
+            Post = post,
+            UserId = curUser.Id,
+            User = curUser,
+            Comment = comment
+        };
+        post.CommentCount++;
+        curUser.Comments?.Add(relation);
+        post.CommentUsers?.Add(relation);
+        _db.UserPostComms.Add(relation);
+        _db.Posts.Update(post);
+        _db.Users.Update(curUser);
+        _db.Users.Update(user);
+        _db.SaveChanges();
+        return RedirectToAction("Post", new {id = post.Id});
+    }
+    
+    public IActionResult Post(int? id)
+    {
+        ViewBag.CurrentUser = _db.Users.Include(p => p.Posts).FirstOrDefault(u => u.Id==int.Parse(_userManager.GetUserId(User)));
+        Post? post = _db.Posts.Include(l => l.LikeUsers).Include(c => c.CommentUsers).Include(u => u.OwnerUser).FirstOrDefault(p => p.Id == id);
+        return View(post);
+    }
     
     public IActionResult Like(int? userId, int? postId)
     {
+        var referrer = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
         User? user = _db.Users.Include(p => p.Posts).FirstOrDefault(u => u.Id == userId);
         User? curUser = _db.Users.Include(p => p.Likes).FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
         Post? post = user.Posts.FirstOrDefault(p => p.Id == postId);
@@ -53,7 +87,7 @@ public class PostController : Controller
             _db.Users.Update(user);
             _db.SaveChanges();
         }
-        return RedirectToAction("Home" , "Account");
+        return Redirect(referrer);
     }
     
     [HttpGet]
@@ -77,6 +111,7 @@ public class PostController : Controller
             }
             post.FilePath = path;
             post.LikesCount = 0;
+            post.CommentCount = 0;
             post.AddedDate = DateTime.UtcNow;
             user.PostCount++;
             user.Posts.Add(post);
@@ -86,9 +121,5 @@ public class PostController : Controller
         }
         return View(post);
     }
-
-    public IActionResult Post(int? id)
-    {
-        return View();
-    }
+    
 }

@@ -10,6 +10,7 @@ public class InstagramDb : IdentityDbContext<User, IdentityRole<int>, int>
     public DbSet<SubAndSub> SubAndSubs { get; set; }
     public DbSet<Post> Posts { get; set; }
     public DbSet<UserPostLike> UserPostLikes { get; set; }
+    public DbSet<UserPostComm> UserPostComms { get; set; }
 
     public InstagramDb(DbContextOptions<InstagramDb> options) : base(options) { }
 
@@ -44,6 +45,20 @@ public class InstagramDb : IdentityDbContext<User, IdentityRole<int>, int>
         modelBuilder.Entity<UserPostLike>()
             .HasOne(upl => upl.Post)
             .WithMany(p => p.LikeUsers)
+            .HasForeignKey(upl => upl.PostId);
+        
+        modelBuilder.Entity<UserPostComm>()
+            .HasIndex(upl => new { upl.UserId, upl.PostId })
+            .IsUnique(false);
+
+        modelBuilder.Entity<UserPostComm>()
+            .HasOne(upl => upl.User)
+            .WithMany(u => u.Comments)
+            .HasForeignKey(upl => upl.UserId);
+
+        modelBuilder.Entity<UserPostComm>()
+            .HasOne(upl => upl.Post)
+            .WithMany(p => p.CommentUsers)
             .HasForeignKey(upl => upl.PostId);
     }
 }

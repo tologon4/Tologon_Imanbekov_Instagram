@@ -12,5 +12,7 @@ public class Post
     public string Description { get; set; }
     public DateTime? AddedDate { get; set; }
     public int? LikesCount { get; set; }
+    public int? CommentCount { get; set; }
     public ICollection<UserPostLike>? LikeUsers { get; set; }
+    public ICollection<UserPostComm>? CommentUsers { get; set; }
 }
