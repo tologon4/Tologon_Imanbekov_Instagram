@@ -14,7 +14,13 @@
             <div class="row ">
                 <div class=" col col-3"><h5>@Model.OwnerUser.UserName</h5></div>
                 @if (ViewBag.CurrentUser.Id == @Model.OwnerUserId) { <div class="col col-9 d-flex"><a class="my-auto btn btn-light me-auto" asp-action="Edit" asp-controller="Account">Edit profile</a></div> }
-                @if (ViewBag.CurrentUser.Id != @Model.OwnerUserId) { <div class="col col-9 d-flex"><a class="my-auto btn btn-info me-auto" asp-action="Follow" asp-route-id="@Model.Id" asp-controller="Account"><span class="text-white">Follow</span></a></div> }
+                @if (ViewBag.CurrentUser.Id != @Model.Id)
+                {
+                    <div class="col col-9 d-flex">
+                        @if (ViewBag.FollowQue == true) { <a class="my-auto btn btn-info me-auto" asp-action="Follow" asp-route-id="@Model.Id" asp-controller="Account"><span class="text-white">Follow</span></a> }
+                        else { <a class="my-auto btn btn-light me-auto" asp-action="Follow" asp-route-id="@Model.Id" asp-controller="Account"><span class="text-dark">Unfollow</span></a> }
+                    </div>
+                }
                 <div class="col col-4 mt-4"><b>@Model.OwnerUser.PostCount</b> &nbsp; posts</div>
                 <div class="col col-4 mt-4"><b>@Model.OwnerUser.FollowersCount</b>&nbsp;followers</div>
                 <div class="col col-4 mt-4"><b>@Model.OwnerUser.FollowingsCount</b>&nbsp;following</div>
@@ -56,7 +62,8 @@
                 <div class="col-12 h-25 pb-0 mt-auto bg-transparent border-0" style="height: 160px">
                     <div class="col-2 text-start ps-0">
                         <a asp-action="Like" asp-controller="Post" asp-route-userId="@Model.OwnerUserId" asp-route-postId="@Model.Id" class="btn border h-50 border-0 btn-outline-light nav-link me-auto">
-                            <i class=""><img width="25" height="25" class="" src="~/images/heart.png"/></i>
+                            @if (ViewBag.LikeQue == true) { <i class=""><img width="25" height="25" class="" src="~/images/heart.png"/></i> }
+                            else { <i class=""><img width="25" height="25" class="" src="~/images/heartRed.png"/></i> }
                         </a>
                     </div>
                     <p><b>@Model.LikesCount &nbsp; likes</b> </p>

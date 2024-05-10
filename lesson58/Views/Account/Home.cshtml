@@ -1,4 +1,3 @@
-@using Microsoft.AspNetCore.Identity
 @model List<Post>
 
 @{
@@ -23,7 +22,8 @@
                         <div class="card-body">
                             <div class="col-2 me-auto text-start ps-0">
                                 <a asp-action="Like" asp-controller="Post" asp-route-userId="@post.OwnerUserId" asp-route-postId="@post.Id" class="btn border h-50 border-0 btn-outline-light nav-link me-auto">
-                                    <i class=""><img width="25" height="25" class="" src="~/images/heart.png"/></i>
+                                    @if (@LikeQue(post) == true) { <i class=""><img width="25" height="25" class="" src="~/images/heart.png"/></i> }
+                                    else { <i class=""><img width="25" height="25" class="" src="~/images/heartRed.png"/></i> }
                                 </a>
                             </div>
                             <p><b>@post.LikesCount &nbsp; likes</b> </p>
@@ -61,4 +61,22 @@
             return $"{result.ToString("hh")}h";
         return result.ToString("dd");
     }
+
+    bool LikeQue(Post post)
+    {
+        User? curUser = @ViewBag.CurrentUser;
+        bool Answer()
+        {
+            int res = 0;
+            if (post.LikeUsers == null  || post.LikeUsers.Count == 0)
+                res = 0;
+            else
+                foreach (var usr in post.LikeUsers)
+                    if (usr.UserId == curUser.Id)
+                        res++;
+            return res >= 1 ? false : true;
+        }
+        return Answer();
+    }
+    
 }

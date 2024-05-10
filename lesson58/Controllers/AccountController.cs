@@ -19,7 +19,24 @@ public class AccountController : Controller
         _environment = environment;
         _db = db;
     }
-    
+
+    public IActionResult Explore()
+    {
+        User currentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        List<User> users  = _db.Users
+            .Include(u => u.Followers).Include(p => p.Posts)
+            .Where(u => u.Id != currentUser.Id &&
+                        !u.Followers.Any(f => f.FollowFromId == currentUser.Id))
+            .ToList(); 
+        List<Post> posts = new List<Post>();
+            
+        foreach (var user in users)
+            if (user.Posts.Count>0)
+                foreach (var post in user.Posts)
+                    posts.Add(post);
+        posts = posts.OrderByDescending(p => p.AddedDate).ToList();
+        return View(posts);
+    }
     public IActionResult Follow(int? id)
     {
         User? followToUser = _db.Users.Include(p => p.Followers).FirstOrDefault(u => u.Id == id);
@@ -37,6 +54,7 @@ public class AccountController : Controller
                             res++;
             return res >= 1 ? false : true;
         }
+        
         if (Answer()==true)
         {
             SubAndSub relation = new SubAndSub()
@@ -51,17 +69,42 @@ public class AccountController : Controller
             curUser.Followings.Add(relation);
             followToUser.Followers.Add(relation);
             _db.SubAndSubs.Add(relation);
-            _db.Users.Update(curUser);
-            _db.Users.Update(followToUser);
-            _db.SaveChanges();
         }
+        else
+        {
+            SubAndSub relation = _db.SubAndSubs.FirstOrDefault(f => f.FollowToId ==followToUser.Id && f.FollowFromId==curUser.Id);
+            curUser.FollowingsCount --;
+            followToUser.FollowersCount--;
+            curUser.Followings.Remove(relation);
+            followToUser.Followers.Remove(relation);
+            _db.SubAndSubs.Remove(relation);
+        }
+        _db.Users.Update(curUser);
+        _db.Users.Update(followToUser);
+        _db.SaveChanges();
         return RedirectToAction("Profile", new {id = followToUser.Id});
     }
     public IActionResult Profile(int? id)
     {
-        ViewBag.CurrentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
-        User? user = _db.Users.Include(p => p.Posts).Include(l => l.Likes).Include(c => c.Comments).FirstOrDefault(u => u.Id == id);
-        return View(user);
+        User? curUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        User? followToUser = _db.Users.Include(p => p.Posts)
+            .Include(l => l.Likes).Include(f => f.Followers)
+            .Include(c => c.Comments).FirstOrDefault(u => u.Id == id);
+        ViewBag.CurrentUser = curUser;
+        bool Answer()
+        {
+            int res = 0;
+            if (followToUser.Followers.Count == 0)
+                res = 0;
+            else
+                foreach (var rel in followToUser.Followers)
+                    if (rel.FollowToId == followToUser.Id)
+                        if (rel.FollowFromId == curUser.Id)
+                            res++;
+            return res >= 1 ? false : true;
+        }
+        ViewBag.FollowQue = Answer();
+        return View(followToUser);
     }
     
     public IActionResult Home()
@@ -76,18 +119,24 @@ public class AccountController : Controller
         List<User> followingUsers = _db.Users.Include(p => p.Posts)
              .Include(u => u.Followers)
              .Where(u => u.Id != currentUser.Id &&
-                         u.Followers.Any(f => f.FollowFromId == currentUser.Id))
-             .ToList();
-        List<Post> posts = new List<Post>();
-            
+                         u.Followers.Any(f => f.FollowFromId == currentUser.Id)).ToList();
+
+        
+        var followingIds = currentUser.Followings.Select(f => f.FollowToId).ToList();
+
+        List<Post> posts2 = _db.Posts
+            .Include(u => u.LikeUsers)
+            .Where(o => o.OwnerUserId != currentUser.Id && followingIds.Contains(o.OwnerUserId))
+            .ToList();
+        
+        List<Post>? posts = _db.Posts.Include(u => u.LikeUsers)
+            .Where(o => o.OwnerUserId != currentUser.Id).ToList();
         foreach (var user in followingUsers)
             if (user.Posts.Count>0)
                 foreach (var post in user.Posts)
-                    posts.Add(post);
-         
-        posts = posts.OrderByDescending(p => p.AddedDate).ToList();
-        
-        return View(posts);
+                    posts?.Add(post);
+        posts = posts?.OrderByDescending(p => p.AddedDate).ToList();
+        return View(posts2);
     }
     public IActionResult Login(string? returnUrl = null)
     {

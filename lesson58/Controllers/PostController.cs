@@ -47,8 +47,43 @@ public class PostController : Controller
     
     public IActionResult Post(int? id)
     {
-        ViewBag.CurrentUser = _db.Users.Include(p => p.Posts).FirstOrDefault(u => u.Id==int.Parse(_userManager.GetUserId(User)));
-        Post? post = _db.Posts.Include(l => l.LikeUsers).Include(c => c.CommentUsers).Include(u => u.OwnerUser).FirstOrDefault(p => p.Id == id);
+        User? curUser = _db.Users.Include(p => p.Posts)
+            .FirstOrDefault(u => u.Id==int.Parse(_userManager.GetUserId(User)));
+        ViewBag.CurrentUser = curUser;
+        Post? post = _db.Posts.Include(l => l.LikeUsers)
+            .Include(o => o.OwnerUser)
+            .Include(c => c.CommentUsers)
+            .Include(u => u.OwnerUser)
+            .FirstOrDefault(p => p.Id == id);
+        bool Answer()
+        {
+            int res = 0;
+            if (post.LikeUsers == null  || post.LikeUsers.Count == 0)
+                res = 0;
+            else
+                foreach (var usr in post.LikeUsers)
+                    if (usr.UserId == curUser.Id)
+                        res++;
+            return res >= 1 ? false : true;
+        }
+        User? followToUser = _db.Users
+            .Include(f => f.Followers)
+            .FirstOrDefault(u => u.Id == post.OwnerUserId);
+        ViewBag.CurrentUser = curUser;
+        bool AnswerFollow()
+        {
+            int res = 0;
+            if (followToUser.Followers.Count == 0)
+                res = 0;
+            else
+                foreach (var rel in followToUser.Followers)
+                    if (rel.FollowToId == followToUser.Id)
+                        if (rel.FollowFromId == curUser.Id)
+                            res++;
+            return res >= 1 ? false : true;
+        }
+        ViewBag.LikeQue = Answer();
+        ViewBag.FollowQue = AnswerFollow();
         return View(post);
     }
     
@@ -82,11 +117,19 @@ public class PostController : Controller
             curUser.Likes?.Add(relation);
             post.LikeUsers?.Add(relation);
             _db.UserPostLikes.Add(relation);
-            _db.Posts.Update(post);
-            _db.Users.Update(curUser);
-            _db.Users.Update(user);
-            _db.SaveChanges();
         }
+        else
+        {
+            UserPostLike relation = _db.UserPostLikes.FirstOrDefault(p=>p.PostId == post.Id && p.UserId==curUser.Id);
+            post.LikesCount--;
+            curUser.Likes?.Remove(relation);
+            post.LikeUsers?.Remove(relation);
+            _db.UserPostLikes.Remove(relation);
+        }
+        _db.Posts.Update(post);
+        _db.Users.Update(curUser);
+        _db.Users.Update(user);
+        _db.SaveChanges();
         return Redirect(referrer);
     }
     
@@ -110,6 +153,7 @@ public class PostController : Controller
                 await uploadedFile.CopyToAsync(fileStream);
             }
             post.FilePath = path;
+            post.OwnerUser = user;
             post.LikesCount = 0;
             post.CommentCount = 0;
             post.AddedDate = DateTime.UtcNow;

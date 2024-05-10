@@ -15,7 +15,13 @@
             <div class="row ">
                 <div class=" col col-3"><h5>@Model.UserName</h5></div>
                 @if (ViewBag.CurrentUser.Id == @Model.Id) { <div class="col col-9 d-flex"><a class="my-auto btn btn-light me-auto" asp-action="Edit" asp-controller="Account">Edit profile</a></div> }
-                @if (ViewBag.CurrentUser.Id != @Model.Id) { <div class="col col-9 d-flex"><a class="my-auto btn btn-info me-auto" asp-action="Follow" asp-route-id="@Model.Id" asp-controller="Account"><span class="text-white">Follow</span></a></div> }
+                @if (ViewBag.CurrentUser.Id != @Model.Id)
+                {
+                    <div class="col col-9 d-flex">
+                        @if (ViewBag.FollowQue == true) { <a class="my-auto btn btn-info me-auto" asp-action="Follow" asp-route-id="@Model.Id" asp-controller="Account"><span class="text-white">Follow</span></a> }
+                        else { <a class="my-auto btn btn-light me-auto" asp-action="Follow" asp-route-id="@Model.Id" asp-controller="Account"><span class="text-dark">Unfollow</span></a> }
+                    </div>
+                }
                 <div class="col col-4 mt-4"><b>@Model.PostCount</b> &nbsp; posts</div>
                 <div class="col col-4 mt-4"><b>@Model.FollowersCount</b>&nbsp;followers</div>
                 <div class="col col-4 mt-4"><b>@Model.FollowingsCount</b>&nbsp;following</div>
