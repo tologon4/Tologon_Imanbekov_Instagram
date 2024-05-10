@@ -1,4 +1,5 @@
 using lesson58.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,7 @@ public class AccountController : Controller
         _db = db;
     }
 
-
+    [Authorize]
     public IActionResult Search(string? searchParam)
     {
         User currentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
@@ -38,6 +39,7 @@ public class AccountController : Controller
         usersNew.AddRange(users.Where(u => u.UserName.Contains(searchParam)).ToList());
         return View(usersNew.ToHashSet().ToList());
     }
+    [Authorize]
     public IActionResult Explore()
     {
         User currentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
@@ -55,6 +57,7 @@ public class AccountController : Controller
         posts = posts.OrderByDescending(p => p.AddedDate).ToList();
         return View(posts);
     }
+    [Authorize]
     public IActionResult Follow(int? id)
     {
         User? followToUser = _db.Users.Include(p => p.Followers).FirstOrDefault(u => u.Id == id);
@@ -105,6 +108,8 @@ public class AccountController : Controller
         _db.SaveChanges();
         return RedirectToAction("Profile", new {id = followToUser.Id});
     }
+    
+    [Authorize]
     public IActionResult Profile(int? id)
     {
         User? curUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
@@ -128,6 +133,7 @@ public class AccountController : Controller
         return View(followToUser);
     }
     
+    [Authorize]
     public IActionResult Home()
     {
         User currentUser = _db.Users.Include(f=>f.Followings).FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
@@ -159,6 +165,8 @@ public class AccountController : Controller
         posts = posts?.OrderByDescending(p => p.AddedDate).ToList();
         return View(posts2);
     }
+    
+    
     public IActionResult Login(string? returnUrl = null)
     {
         return View(new LoginViewModel(){ReturnUrl = returnUrl});
@@ -236,7 +244,8 @@ public class AccountController : Controller
         ModelState.AddModelError("", "Something went wrong! Please check all info");
         return View(model);
     }
-
+    
+    [Authorize]
     public IActionResult Edit()
     {
         ViewBag.Genders = new string[] { "Male", "Female"};
@@ -252,7 +261,7 @@ public class AccountController : Controller
         };
         return View(user);
     }
-    
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Edit(EditViewModel model, IFormFile? uploadedFile)
     {
@@ -290,6 +299,7 @@ public class AccountController : Controller
         return View(model);
     }
     
+    [Authorize]
     [ValidateAntiForgeryToken]
     [HttpPost]
     public async Task<IActionResult> LogOut()

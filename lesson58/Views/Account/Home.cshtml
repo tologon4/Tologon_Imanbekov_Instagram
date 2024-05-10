@@ -20,7 +20,7 @@
                             <img src="@post.FilePath" class="border-top card-img-top" alt="">
                         </a>
                         <div class="card-body">
-                            <div class="col-1 me-auto text-start py-0 ps-0">
+                            <div class="col-2 me-auto text-start  ps-0">
                                 <a asp-action="Like" asp-controller="Post" asp-route-userId="@post.OwnerUserId" asp-route-postId="@post.Id" class="btn border h-50 border-0 btn-outline-light nav-link me-auto">
                                     @if (@LikeQue(post) == true) { <i class=""><img width="25" height="25" class="" src="~/images/heart.png"/></i> }
                                     else { <i class=""><img width="25" height="25" class="" src="~/images/heartRed.png"/></i> }

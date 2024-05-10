@@ -1,10 +1,11 @@
 using lesson58.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace lesson58.Controllers;
-
+[Authorize]
 public class PostController : Controller
 {
     private readonly UserManager<User> _userManager;
