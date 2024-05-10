@@ -14,7 +14,7 @@
             <div class="row ">
                 <div class=" col col-3"><h5>@Model.OwnerUser.UserName</h5></div>
                 @if (ViewBag.CurrentUser.Id == @Model.OwnerUserId) { <div class="col col-9 d-flex"><a class="my-auto btn btn-light me-auto" asp-action="Edit" asp-controller="Account">Edit profile</a></div> }
-                @if (ViewBag.CurrentUser.Id != @Model.Id)
+                @if (ViewBag.CurrentUser.Id != @Model.OwnerUserId)
                 {
                     <div class="col col-9 d-flex">
                         @if (ViewBag.FollowQue == true) { <a class="my-auto btn btn-info me-auto" asp-action="Follow" asp-route-id="@Model.Id" asp-controller="Account"><span class="text-white">Follow</span></a> }
@@ -43,7 +43,7 @@
                     </a>
                 </div>
                 <div class="col-12">
-                    <div data-bs-spy="scroll" data-bs-target="#simple-list-example" data-bs-offset="0" data-bs-smooth-scroll="true" class="scrollspy-example" tabindex="0">
+                    <div data-bs-spy="scroll" data-bs-target="#simple-list-example" data-bs-offset="0" data-bs-smooth-scroll="true" class="overflow-y-auto" tabindex="0">
                         <div class="alert my-0 py-0" role="alert">
                             <a asp-action="Profile" asp-controller="Account" asp-route-id="@Model.OwnerUserId" class="btn border h-50 border-0 btn-outline-light nav-link text-start text-dark my-2">
                                 <i><img width="50" height="50" class="rounded-circle" src="@Model.OwnerUser.Avatar"/></i><b class="ms-3">@Model.OwnerUser.UserName</b> &nbsp;<span>@Model.Description</span>

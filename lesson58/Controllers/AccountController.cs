@@ -20,6 +20,24 @@ public class AccountController : Controller
         _db = db;
     }
 
+
+    public IActionResult Search(string? searchParam)
+    {
+        User currentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        ViewBag.CurrentUser = currentUser;
+        ViewBag.SuggestedUsers = _db.Users
+            .Include(u => u.Followers)
+            .Where(u => u.Id != currentUser.Id &&
+                        !u.Followers.Any(f => f.FollowFromId == currentUser.Id))
+            .ToList();
+        IQueryable<User>? users = _db.Users.Include(p => p.Posts);
+        List<User> usersNew = new List<User>();
+        usersNew.AddRange(users.Where(u => u.UserInfo.Contains(searchParam)).ToList());
+        usersNew.AddRange(users.Where(u => u.FullName.Contains(searchParam)).ToList());
+        usersNew.AddRange(users.Where(u => u.Email.Contains(searchParam)).ToList());
+        usersNew.AddRange(users.Where(u => u.UserName.Contains(searchParam)).ToList());
+        return View(usersNew.ToHashSet().ToList());
+    }
     public IActionResult Explore()
     {
         User currentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
@@ -41,9 +59,10 @@ public class AccountController : Controller
     {
         User? followToUser = _db.Users.Include(p => p.Followers).FirstOrDefault(u => u.Id == id);
         User? curUser = _db.Users.Include(p => p.Followings).FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
-
+        
         bool Answer()
         {
+            
             int res = 0;
             if (followToUser.Followers.Count == 0)
                 res = 0;
@@ -52,6 +71,8 @@ public class AccountController : Controller
                     if (rel.FollowToId == followToUser.Id)
                         if (rel.FollowFromId == curUser.Id)
                             res++;
+            if (followToUser.Id == curUser.Id)
+                res ++;
             return res >= 1 ? false : true;
         }
         
@@ -109,7 +130,7 @@ public class AccountController : Controller
     
     public IActionResult Home()
     {
-        User currentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        User currentUser = _db.Users.Include(f=>f.Followings).FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
         ViewBag.CurrentUser = currentUser;
         ViewBag.SuggestedUsers = _db.Users
             .Include(u => u.Followers)
@@ -122,7 +143,7 @@ public class AccountController : Controller
                          u.Followers.Any(f => f.FollowFromId == currentUser.Id)).ToList();
 
         
-        var followingIds = currentUser.Followings.Select(f => f.FollowToId).ToList();
+        var followingIds = currentUser?.Followings?.Select(f => f.FollowToId).ToList();
 
         List<Post> posts2 = _db.Posts
             .Include(u => u.LikeUsers)

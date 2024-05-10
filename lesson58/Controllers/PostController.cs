@@ -122,7 +122,7 @@ public class PostController : Controller
         {
             UserPostLike relation = _db.UserPostLikes.FirstOrDefault(p=>p.PostId == post.Id && p.UserId==curUser.Id);
             post.LikesCount--;
-            curUser.Likes?.Remove(relation);
+            curUser?.Likes?.Remove(relation);
             post.LikeUsers?.Remove(relation);
             _db.UserPostLikes.Remove(relation);
         }
@@ -136,7 +136,7 @@ public class PostController : Controller
     [HttpGet]
     public IActionResult Create()
     {
-        ViewBag.UserId = _db.Users.FirstOrDefault(u=> u.Id==int.Parse(_userManager.GetUserId(User))).Id;
+        ViewBag.UserId = _db.Users.Include(p => p.Posts).FirstOrDefault(u=> u.Id==int.Parse(_userManager.GetUserId(User))).Id;
         return View();
     }
     [HttpPost]
