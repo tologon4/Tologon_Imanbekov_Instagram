@@ -19,4 +19,16 @@
       <Folder Include="wwwroot\userImages\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="Models\LoginViewModel.cs">
+        <DependentUpon>User.cs</DependentUpon>
+      </Compile>
+      <Compile Update="Models\RegisterViewModel.cs">
+        <DependentUpon>User.cs</DependentUpon>
+      </Compile>
+      <Compile Update="Models\EditViewModel.cs">
+        <DependentUpon>User.cs</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>

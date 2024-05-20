@@ -19,6 +19,7 @@
     
 </head>
 <body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 @inject SignInManager<User> signInManager;
 @inject UserManager<User> userManager;
 <div class="container-fluid ">
@@ -49,7 +50,8 @@
                             <img class="w-25 " src="~/images/menu.png"/><span class="ms-3">More</span>
                         </a>
                         <ul class="dropdown-menu">
-                            <li><form method="post" asp-controller="Account" asp-action="LogOut"><input type="submit" value="Log out" class="dropdown-item nav-link text-dark"/></form></li>
+                            <li>
+                                <form method="post" asp-controller="Account" asp-action="LogOut"><input type="submit" value="Log out" class="dropdown-item nav-link text-dark"/></form></li>
                         </ul>
                     </div>
                 </div>

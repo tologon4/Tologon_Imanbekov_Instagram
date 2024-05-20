@@ -15,18 +15,21 @@ public class PostController : Controller
 
     public PostController(UserManager<User> userManager, InstagramDb db, IWebHostEnvironment environment, IHttpContextAccessor contextAccessor)
     {
-        _userManager = userManager;
         _db = db;
+        _userManager = userManager;
         _environment = environment;
         _httpContextAccessor = contextAccessor;
     }
-    
+    [Authorize]
     [HttpPost]
-    public IActionResult Comment(int? userId, int? postId, string? comment)
+    public async Task<IActionResult> Comment(int? userId, int? postId, string? comment)
     {
-        User? user = _db.Users.Include(p => p.Posts).FirstOrDefault(u => u.Id == userId);
-        User? curUser = _db.Users.Include(p => p.Comments).FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
-        Post? post = user.Posts.FirstOrDefault(p => p.Id == postId);
+        var referrer = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
+        if (!userId.HasValue || !postId.HasValue)
+            return Redirect(referrer);  
+        User? user = await _db.Users.Include(p => p.Posts).FirstOrDefaultAsync(u => u.Id == userId);
+        User? curUser = await _db.Users.Include(p => p.Comments).FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        Post? post = await _db.Posts.FirstOrDefaultAsync(p => p.Id == postId);
         UserPostComm relation = new UserPostComm()
         {
             PostId = post.Id,
@@ -42,70 +45,42 @@ public class PostController : Controller
         _db.Posts.Update(post);
         _db.Users.Update(curUser);
         _db.Users.Update(user);
-        _db.SaveChanges();
-        return RedirectToAction("Post", new {id = post.Id});
+        await _db.SaveChangesAsync();
+        return RedirectToAction("Details", new {id = post.Id});
     }
-    
-    public IActionResult Post(int? id)
-    {
-        User? curUser = _db.Users.Include(p => p.Posts)
-            .FirstOrDefault(u => u.Id==int.Parse(_userManager.GetUserId(User)));
-        ViewBag.CurrentUser = curUser;
-        Post? post = _db.Posts.Include(l => l.LikeUsers)
-            .Include(o => o.OwnerUser)
-            .Include(c => c.CommentUsers)
-            .Include(u => u.OwnerUser)
-            .FirstOrDefault(p => p.Id == id);
-        bool Answer()
-        {
-            int res = 0;
-            if (post.LikeUsers == null  || post.LikeUsers.Count == 0)
-                res = 0;
-            else
-                foreach (var usr in post.LikeUsers)
-                    if (usr.UserId == curUser.Id)
-                        res++;
-            return res >= 1 ? false : true;
-        }
-        User? followToUser = _db.Users
-            .Include(f => f.Followers)
-            .FirstOrDefault(u => u.Id == post.OwnerUserId);
-        ViewBag.CurrentUser = curUser;
-        bool AnswerFollow()
-        {
-            int res = 0;
-            if (followToUser.Followers.Count == 0)
-                res = 0;
-            else
-                foreach (var rel in followToUser.Followers)
-                    if (rel.FollowToId == followToUser.Id)
-                        if (rel.FollowFromId == curUser.Id)
-                            res++;
-            return res >= 1 ? false : true;
-        }
-        ViewBag.LikeQue = Answer();
-        ViewBag.FollowQue = AnswerFollow();
-        return View(post);
-    }
-    
-    public IActionResult Like(int? userId, int? postId)
+    [Authorize]
+    public async Task<IActionResult> Details(int? id)
     {
         var referrer = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
-        User? user = _db.Users.Include(p => p.Posts).FirstOrDefault(u => u.Id == userId);
-        User? curUser = _db.Users.Include(p => p.Likes).FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
-        Post? post = user.Posts.FirstOrDefault(p => p.Id == postId);
-        bool Answer()
-        {
-            int res = 0;
-            if (post.LikeUsers == null  || post.LikeUsers.Count == 0)
-                res = 0;
-            else
-                foreach (var usr in post.LikeUsers)
-                    if (usr.UserId == curUser.Id)
-                        res++;
-            return res >= 1 ? false : true;
-        }
-        if (Answer()==true)
+        if (!id.HasValue)
+            return Redirect(referrer);
+        User? curUser = await _db.Users.Include(p => p.Posts)
+            .FirstOrDefaultAsync(u => u.Id==int.Parse(_userManager.GetUserId(User)));
+        Post? post = await _db.Posts.Include(l => l.LikeUsers)
+            .Include(o => o.OwnerUser)
+            .Include(c => c.CommentUsers)
+            .FirstOrDefaultAsync(p => p.Id == id);
+        User? followToUser = await _db.Users
+            .Include(f => f.Followers)
+            .FirstOrDefaultAsync(u => u.Id == post.OwnerUserId);
+        ViewBag.Comments = _db.UserPostComms.Include(u => u.User)
+            .Include(p => p.Post)
+            .Where(c => c.PostId == post.Id);;
+        ViewBag.CurrentUser = curUser;
+        ViewBag.LikeQue = !post.LikeUsers.Any(u => u.UserId == curUser.Id);
+        ViewBag.FollowQue = !followToUser.Followers.Any(u => u.FollowFromId == curUser.Id);
+        return View(post);
+    }
+    [Authorize]
+    public async Task<IActionResult> Like(int? userId, int? postId)
+    {
+        var referrer = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
+        if (!userId.HasValue || !postId.HasValue)
+            return Redirect(referrer);
+        User? user = await _db.Users.Include(p => p.Posts).FirstOrDefaultAsync(u => u.Id == userId);
+        User? curUser = await _db.Users.Include(p => p.Likes).FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        Post? post = await _db.Posts.Include(u => u.LikeUsers).FirstOrDefaultAsync(p => p.Id == postId);
+        if (!post.LikeUsers.Any(u => u.UserId == curUser.Id))
         {
             UserPostLike relation = new UserPostLike()
             {
@@ -121,7 +96,7 @@ public class PostController : Controller
         }
         else
         {
-            UserPostLike relation = _db.UserPostLikes.FirstOrDefault(p=>p.PostId == post.Id && p.UserId==curUser.Id);
+            UserPostLike relation = await _db.UserPostLikes.FirstOrDefaultAsync(p=>p.PostId == post.Id && p.UserId==curUser.Id);
             post.LikesCount--;
             curUser?.Likes?.Remove(relation);
             post.LikeUsers?.Remove(relation);
@@ -130,20 +105,21 @@ public class PostController : Controller
         _db.Posts.Update(post);
         _db.Users.Update(curUser);
         _db.Users.Update(user);
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
         return Redirect(referrer);
     }
-    
+    [Authorize]
     [HttpGet]
     public IActionResult Create()
     {
         ViewBag.UserId = _db.Users.Include(p => p.Posts).FirstOrDefault(u=> u.Id==int.Parse(_userManager.GetUserId(User))).Id;
         return View();
     }
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create(Post post, IFormFile uploadedFile)
     {
-        User user = _db.Users.Include(p => p.Posts).FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        User user = await _db.Users.Include(p => p.Posts).FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)));
         ViewBag.UserId = user.Id;
         if (ModelState.IsValid)
         {
@@ -161,10 +137,9 @@ public class PostController : Controller
             user.PostCount++;
             user.Posts.Add(post);
             _db.Posts.Add(post);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return RedirectToAction("Profile", "Account", new {id = user.Id});
         }
         return View(post);
     }
-    
 }

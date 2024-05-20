@@ -13,8 +13,12 @@ public class AccountController : Controller
     private readonly SignInManager<User> _signInManager;
     private readonly IWebHostEnvironment _environment;
     private InstagramDb _db;
-    public AccountController(UserManager<User> userManager, SignInManager<User> signInManager, IWebHostEnvironment environment, InstagramDb db)
+    private IHttpContextAccessor _httpContextAccessor;
+ 
+    public AccountController(UserManager<User> userManager, SignInManager<User> signInManager,
+        IWebHostEnvironment environment, InstagramDb db, IHttpContextAccessor httpContextAccessor)
     {
+        _httpContextAccessor = httpContextAccessor;
         _signInManager = signInManager;
         _userManager = userManager;
         _environment = environment;
@@ -22,13 +26,13 @@ public class AccountController : Controller
     }
 
     [Authorize]
-    public IActionResult Search(string? searchParam)
+    public async Task<IActionResult> Search(string? searchParam)
     {
-        User currentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        User currentUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)));
         ViewBag.CurrentUser = currentUser;
         ViewBag.SuggestedUsers = _db.Users
             .Include(u => u.Followers)
-            .Where(u => u.Id != currentUser.Id &&
+            .Where(u => u.Id != currentUser.Id && 
                         !u.Followers.Any(f => f.FollowFromId == currentUser.Id))
             .ToList();
         IQueryable<User>? users = _db.Users.Include(p => p.Posts);
@@ -40,14 +44,14 @@ public class AccountController : Controller
         return View(usersNew.ToHashSet().ToList());
     }
     [Authorize]
-    public IActionResult Explore()
+    public async Task<IActionResult> Explore()
     {
-        User currentUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
-        List<User> users  = _db.Users
+        User currentUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        List<User> users  = await _db.Users
             .Include(u => u.Followers).Include(p => p.Posts)
             .Where(u => u.Id != currentUser.Id &&
                         !u.Followers.Any(f => f.FollowFromId == currentUser.Id))
-            .ToList(); 
+            .ToListAsync(); 
         List<Post> posts = new List<Post>();
             
         foreach (var user in users)
@@ -58,28 +62,16 @@ public class AccountController : Controller
         return View(posts);
     }
     [Authorize]
-    public IActionResult Follow(int? id)
+    [HttpPost]
+    public async Task<IActionResult> Follow(int? id)
     {
-        User? followToUser = _db.Users.Include(p => p.Followers).FirstOrDefault(u => u.Id == id);
-        User? curUser = _db.Users.Include(p => p.Followings).FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
-        
-        bool Answer()
-        {
-            
-            int res = 0;
-            if (followToUser.Followers.Count == 0)
-                res = 0;
-            else
-                foreach (var rel in followToUser.Followers)
-                    if (rel.FollowToId == followToUser.Id)
-                        if (rel.FollowFromId == curUser.Id)
-                            res++;
-            if (followToUser.Id == curUser.Id)
-                res ++;
-            return res >= 1 ? false : true;
-        }
-        
-        if (Answer()==true)
+        var referrer = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
+        if (!id.HasValue)
+            return Redirect(referrer);
+        User? followToUser = await _db.Users.Include(p => p.Followers).FirstOrDefaultAsync(u => u.Id == id);
+        User? curUser = await _db.Users.Include(p => p.Followings).FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        var followIdent = !followToUser.Followers.Any(u => u.FollowFromId == curUser.Id);
+        if (followIdent)
         {
             SubAndSub relation = new SubAndSub()
             {
@@ -92,11 +84,11 @@ public class AccountController : Controller
             followToUser.FollowersCount++;
             curUser.Followings.Add(relation);
             followToUser.Followers.Add(relation);
-            _db.SubAndSubs.Add(relation);
+            await _db.SubAndSubs.AddAsync(relation);
         }
         else
         {
-            SubAndSub relation = _db.SubAndSubs.FirstOrDefault(f => f.FollowToId ==followToUser.Id && f.FollowFromId==curUser.Id);
+            SubAndSub relation = await _db.SubAndSubs.FirstOrDefaultAsync(f => f.FollowToId == followToUser.Id && f.FollowFromId == curUser.Id);
             curUser.FollowingsCount --;
             followToUser.FollowersCount--;
             curUser.Followings.Remove(relation);
@@ -105,65 +97,42 @@ public class AccountController : Controller
         }
         _db.Users.Update(curUser);
         _db.Users.Update(followToUser);
-        _db.SaveChanges();
-        return RedirectToAction("Profile", new {id = followToUser.Id});
+        await _db.SaveChangesAsync();
+        return  Json( new { followersCount = followToUser.FollowersCount, followIdentVar = followIdent});
     }
     
     [Authorize]
-    public IActionResult Profile(int? id)
+    public async Task<IActionResult> Profile(int? id)
     {
-        User? curUser = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
-        User? followToUser = _db.Users.Include(p => p.Posts)
+        var referrer = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
+        if (!id.HasValue)
+            return Redirect(referrer);
+        User? curUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        User? followToUser = await _db.Users.Include(p => p.Posts)
             .Include(l => l.Likes).Include(f => f.Followers)
-            .Include(c => c.Comments).FirstOrDefault(u => u.Id == id);
+            .Include(c => c.Comments).FirstOrDefaultAsync(u => u.Id == id);
         ViewBag.CurrentUser = curUser;
-        bool Answer()
-        {
-            int res = 0;
-            if (followToUser.Followers.Count == 0)
-                res = 0;
-            else
-                foreach (var rel in followToUser.Followers)
-                    if (rel.FollowToId == followToUser.Id)
-                        if (rel.FollowFromId == curUser.Id)
-                            res++;
-            return res >= 1 ? false : true;
-        }
-        ViewBag.FollowQue = Answer();
+        ViewBag.FollowIdent = followToUser.Followers.Any(u => u.FollowFromId == curUser.Id);
         return View(followToUser);
     }
     
     [Authorize]
-    public IActionResult Home()
+    public async Task<IActionResult> Home()
     {
-        User currentUser = _db.Users.Include(f=>f.Followings).FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
+        User currentUser = await _db.Users.Include(f=>f.Followings).FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)));
         ViewBag.CurrentUser = currentUser;
         ViewBag.SuggestedUsers = _db.Users
             .Include(u => u.Followers)
-            .Where(u => u.Id != currentUser.Id &&
-                        !u.Followers.Any(f => f.FollowFromId == currentUser.Id))
+            .Where(u => u.Id != currentUser.Id && u.Followers.All(f => f.FollowFromId != currentUser.Id))
             .ToList(); 
-        List<User> followingUsers = _db.Users.Include(p => p.Posts)
-             .Include(u => u.Followers)
-             .Where(u => u.Id != currentUser.Id &&
-                         u.Followers.Any(f => f.FollowFromId == currentUser.Id)).ToList();
-
-        
         var followingIds = currentUser?.Followings?.Select(f => f.FollowToId).ToList();
 
-        List<Post> posts2 = _db.Posts
+        List<Post> posts = _db.Posts.Include(o => o.OwnerUser)
             .Include(u => u.LikeUsers)
             .Where(o => o.OwnerUserId != currentUser.Id && followingIds.Contains(o.OwnerUserId))
             .ToList();
-        
-        List<Post>? posts = _db.Posts.Include(u => u.LikeUsers)
-            .Where(o => o.OwnerUserId != currentUser.Id).ToList();
-        foreach (var user in followingUsers)
-            if (user.Posts.Count>0)
-                foreach (var post in user.Posts)
-                    posts?.Add(post);
         posts = posts?.OrderByDescending(p => p.AddedDate).ToList();
-        return View(posts2);
+        return View(posts);
     }
     
     
@@ -287,7 +256,7 @@ public class AccountController : Controller
             user.UserName = model.UserName;
             user.PhoneNumber = model.PhoneNumber;
             user.Gender = model.Gender;
-            user.Avatar = path!= null ? path : user.Avatar;
+            user.Avatar = path != null ? path : user.Avatar;
             user.UserInfo = model.UserInfo;
             user.PasswordHash = model.Password != null ? _userManager.PasswordHasher.HashPassword(user, model.Password) : user.PasswordHash;
             await _userManager.UpdateAsync(user);

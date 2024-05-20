@@ -17,13 +17,19 @@
                 @if (ViewBag.CurrentUser.Id == @Model.Id) { <div class="col col-9 d-flex"><a class="my-auto btn btn-light me-auto" asp-action="Edit" asp-controller="Account">Edit profile</a></div> }
                 @if (ViewBag.CurrentUser.Id != @Model.Id)
                 {
+                    <input id="followViewBagIdent" type="hidden" data-myValue="@ViewBag.FollowIdent"/>
                     <div class="col col-9 d-flex">
-                        @if (ViewBag.FollowQue == true) { <a class="my-auto btn btn-info me-auto" asp-action="Follow" asp-route-id="@Model.Id" asp-controller="Account"><span class="text-white">Follow</span></a> }
-                        else { <a class="my-auto btn btn-light me-auto" asp-action="Follow" asp-route-id="@Model.Id" asp-controller="Account"><span class="text-dark">Unfollow</span></a> }
+                        <button id="follow" class="">
+                            <span></span>
+                        </button>
                     </div>
+                    /*<div class="col col-9 d-flex">
+                        @if (ViewBag.FollowQue) { <a class="my-auto btn btn-info me-auto" asp-action="Follow" asp-route-id="@Model.Id" asp-controller="Account"><span class="text-white">Follow</span></a> }
+                        else { <a class="my-auto btn btn-light me-auto" asp-action="Follow" asp-route-id="@Model.Id" asp-controller="Account"><span class="text-dark">Unfollow</span></a> }
+                    </div>*/
                 }
                 <div class="col col-4 mt-4"><b>@Model.PostCount</b> &nbsp; posts</div>
-                <div class="col col-4 mt-4"><b>@Model.FollowersCount</b>&nbsp;followers</div>
+                <div class="col col-4 mt-4"><b id="followersCount">@Model.FollowersCount</b>&nbsp;followers</div>
                 <div class="col col-4 mt-4"><b>@Model.FollowingsCount</b>&nbsp;following</div>
                 <div class="col col-12 mt-4"><h5>@Model.FullName</h5></div>
                 <div class="col col-12 mt-4">
@@ -37,7 +43,7 @@
             @foreach (var post in @Model.Posts)
             {
                 <div class="col justify-content-center align-items-center">
-                    <a asp-action="Post" asp-controller="Post" asp-route-id="@post.Id">
+                    <a asp-action="Details" asp-controller="Post" asp-route-id="@post.Id">
                         <img class="w-100 img-fluid  rounded-0" style="max-height: 300px;" src="@post.FilePath"/>
                     </a>
                 </div>
@@ -45,3 +51,42 @@
         </div>
     </div>
 </div>
+@section Scripts
+{
+    <script>
+        function followIdentButton(identVal){
+            if (identVal===false){
+                $('#follow').removeClass().toggleClass('my-auto btn me-auto btn-info');
+                $('#follow span').text('Follow').removeClass().toggleClass('text-white');
+            }
+            else{
+                $('#follow').removeClass().toggleClass('my-auto btn me-auto btn-light');
+                $('#follow span').text('Unfollow').removeClass().toggleClass('text-dark');
+            }
+        }
+        $().ready(function (){
+            let ident;
+            if('@ViewBag.FollowIdent'==='False'){
+                    ident = false;
+                }
+            else { ident = true; }
+            followIdentButton(ident);
+            $('#follow').click(function (e){
+                e.preventDefault();
+                let userId = @Model.Id;
+                $.ajax({
+                    url: '@Url.Action("Follow", "Account")',
+                    type: 'POST',
+                    data: { 'id':  userId},
+                    success: function (data){
+                        $('#followersCount').text(data.followersCount);
+                        followIdentButton(data.followIdentVar);                       
+                        }
+                });
+                              
+            });
+                                   
+        });
+    </script>
+}
+

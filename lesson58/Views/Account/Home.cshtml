@@ -16,7 +16,7 @@
                         <a asp-action="Profile" asp-controller="Account" asp-route-id="@post.OwnerUserId" class="btn border h-50 border-0 btn-outline-light nav-link text-start text-dark my-2">
                             <i class=""><img width="50" height="50" class="rounded-circle" src="@post.OwnerUser.Avatar"/></i><b class="ms-3">@post.OwnerUser.UserName</b> &nbsp; &nbsp; <span class="text-secondary">@AddedDateGet(@post.AddedDate)</span>
                         </a>
-                        <a asp-route-id="@post.Id" asp-action="Post" asp-controller="Post">
+                        <a asp-route-id="@post.Id" asp-action="Details" asp-controller="Post">
                             <img src="@post.FilePath" class="border-top card-img-top" alt="">
                         </a>
                         <div class="card-body">
@@ -28,8 +28,8 @@
                             </div>
                             <p><b>@post.LikesCount &nbsp; likes</b> </p>
                             <p> <a asp-action="Profile" class="text-dark link-underline link-underline-opacity-0" asp-route-id="@post.OwnerUserId"><b>@post.OwnerUser.UserName</b></a> &nbsp; @post.Description</p>
-                            <a asp-action="Post" asp-controller="Post" asp-route-id="@post.Id" class="text-secondary link-underline link-underline-opacity-0">View all @post.CommentCount comments</a><br/>
-                            <a asp-action="Post" asp-controller="Post" asp-route-id="@post.Id" class="text-secondary link-underline link-underline-opacity-0">Add a comment...</a>
+                            <a asp-action="Details" asp-controller="Post" asp-route-id="@post.Id" class="text-secondary link-underline link-underline-opacity-0">View all @post.CommentCount comments</a><br/>
+                            <a asp-action="Details" asp-controller="Post" asp-route-id="@post.Id" class="text-secondary link-underline link-underline-opacity-0">Add a comment...</a>
                         </div>
                     </div>
                 </div>
@@ -57,28 +57,22 @@
     string AddedDateGet(DateTime? time)
     {
         TimeSpan result = (TimeSpan)(DateTime.UtcNow - time);
-        if (result.Hours <= 1)
-            return $"{result.ToString("mm")}m";
-        else if (result.Days < 1)
-            return $"{result.ToString("hh")}h";
-        return result.ToString("dd");
+        if (result.Days >= 1)
+            return $"{result.ToString("dd")}d";
+        else
+        {
+            if (result.Hours < 1)
+                return $"{result.ToString("mm")}m";
+            else 
+                return $"{result.ToString("hh")}h";
+        }
     }
 
     bool LikeQue(Post post)
     {
         User? curUser = @ViewBag.CurrentUser;
-        bool Answer()
-        {
-            int res = 0;
-            if (post.LikeUsers == null  || post.LikeUsers.Count == 0)
-                res = 0;
-            else
-                foreach (var usr in post.LikeUsers)
-                    if (usr.UserId == curUser.Id)
-                        res++;
-            return res >= 1 ? false : true;
-        }
-        return Answer();
+        return !post.LikeUsers.Any(u => u.UserId == curUser.Id);
     }
+    
     
 }

@@ -19,7 +19,7 @@ public class EditViewModel
     [RegularExpression(@"^\S+(?:\S+)?$", ErrorMessage = "Provide with no space!")]
     public string UserName { get; set; }
     [Required(ErrorMessage = "Please provide a Phone Number")]
-    [RegularExpression(@"^0\d{9}$", ErrorMessage = "Provide in format: 0123456789")]
+    [RegularExpression(@"^0\d{9}$", ErrorMessage = "Provide in format x-number(0-9): 0 xxx xx xx xx")]
     public string PhoneNumber { get; set; }
     public string? Gender { get; set; }
     public string? UserInfo { get; set; }

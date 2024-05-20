@@ -43,13 +43,13 @@
                     </a>
                 </div>
                 <div class="col-12">
-                    <div data-bs-spy="scroll" data-bs-target="#simple-list-example" data-bs-offset="0" data-bs-smooth-scroll="true" class="overflow-y-auto" tabindex="0">
-                        <div class="alert my-0 py-0" role="alert">
+                    <div class="comment-block">
+                        <div class="alert my-0 py-0 " role="alert">
                             <a asp-action="Profile" asp-controller="Account" asp-route-id="@Model.OwnerUserId" class="btn border h-50 border-0 btn-outline-light nav-link text-start text-dark my-2">
                                 <i><img width="50" height="50" class="rounded-circle" src="@Model.OwnerUser.Avatar"/></i><b class="ms-3">@Model.OwnerUser.UserName</b> &nbsp;<span>@Model.Description</span>
                             </a>
                         </div>
-                        @foreach (var comm in @Model.CommentUsers)
+                        @foreach (var comm in ViewBag.Comments)
                         {
                             <div class="alert my-0 py-0" role="alert">
                                 <a asp-action="Profile" asp-controller="Account" asp-route-id="@comm.UserId" class="btn border h-50 border-0 btn-outline-light nav-link text-start text-dark my-2">

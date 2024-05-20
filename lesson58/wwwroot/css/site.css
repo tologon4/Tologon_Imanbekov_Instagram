@@ -24,3 +24,7 @@ body {
 .buttons{
   height: 100vh;
 }
+.comment-block{
+  overflow-y: scroll; width: 100%;
+  height: 400px;
+}

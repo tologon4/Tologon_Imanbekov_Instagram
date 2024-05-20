@@ -47,7 +47,6 @@ public class ValidationController : Controller
                 else
                     result = false;
             }
-                
         return result;
     }
     [AcceptVerbs("GET", "POST")]
@@ -63,7 +62,6 @@ public class ValidationController : Controller
                 else
                     result = false;
             }
-                
         return result;
     }
 }
