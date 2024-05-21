@@ -70,6 +70,28 @@ public class PostController : Controller
         }
         return Json(new {deleteSucces = "deleted"});
     }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> Edit(int? postId, int? userId, string content)
+    {
+        var referrer = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
+        if (!postId.HasValue || !userId.HasValue)
+            return Redirect(referrer);
+        User? user = await _db.Users.Include(p => p.Posts).FirstOrDefaultAsync(u => u.Id == userId);
+        User? curUser = await _db.Users.FirstOrDefaultAsync(u => u.Id==int.Parse(_userManager.GetUserId(User)));
+        if (user ==null || user.Id != curUser.Id)
+            return Redirect(referrer);
+        Post? post = user.Posts.FirstOrDefault(p => p.Id == postId);
+        if (post != null)
+        {
+            post.Description = content;
+            _db.Posts.Update(post);
+            _db.Users.Update(user);
+            await _db.SaveChangesAsync();
+        }
+        return Json(new {contentVar = content});
+    }
     
     [Authorize]
     public async Task<IActionResult> Details(int? id)
