@@ -64,6 +64,7 @@ public class PostController : Controller
         if (post != null)
         {
             user.Posts.Remove(post);
+            user.PostCount--;
             _db.Posts.Remove(post);
             _db.Users.Update(user);
             await _db.SaveChangesAsync();
