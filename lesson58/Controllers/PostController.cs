@@ -48,6 +48,29 @@ public class PostController : Controller
         await _db.SaveChangesAsync();
         return RedirectToAction("Details", new {id = post.Id});
     }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> Delete(int? postId, int? userId)
+    {
+        var referrer = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
+        if (!postId.HasValue || !userId.HasValue)
+            return Redirect(referrer);
+        User? user = await _db.Users.Include(p => p.Posts).FirstOrDefaultAsync(u => u.Id == userId);
+        User? curUser = await _db.Users.FirstOrDefaultAsync(u => u.Id==int.Parse(_userManager.GetUserId(User)));
+        if (user ==null || user.Id != curUser.Id)
+            return Redirect(referrer);
+        Post? post = user.Posts.FirstOrDefault(p => p.Id == postId);
+        if (post != null)
+        {
+            user.Posts.Remove(post);
+            _db.Posts.Remove(post);
+            _db.Users.Update(user);
+            await _db.SaveChangesAsync();
+        }
+        return Json(new {deleteSucces = "deleted"});
+    }
+    
     [Authorize]
     public async Task<IActionResult> Details(int? id)
     {

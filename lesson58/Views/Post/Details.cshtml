@@ -6,10 +6,10 @@
 }
 
 <div class="row g-0 pt-5">
-    <div class="col-md-4 pb-5 text-center border-bottom">
+    <div class="col-md-4 pb-5 text-center">
         <img src="@Model.OwnerUser.Avatar" width="200" height="200" class="rounded-circle mx-auto ">
     </div>
-    <div class="col-md-8 border-bottom">
+    <div class="col-md-8 ">
         <div class="card-body">
             <div class="row ">
                 <div class=" col col-3"><h5>@Model.OwnerUser.UserName</h5></div>
@@ -33,16 +33,36 @@
             </div>
         </div>
     </div>
-    <div class="col col-12 mt-5 px-3">
+    <div class="col col-12 mt-5 px-3 border-top">
         <div class="row row-cols-sm-2">
             <div class="col-md-6">
                 <img src="@Model.FilePath" class="w-100 rounded-start" alt="">
             </div>
             <div class="col-md-6 d-flex align-items-end flex-column">
                 <div class="col-12 border-bottom">
-                    <a asp-action="Profile" asp-controller="Account" asp-route-id="@Model.OwnerUserId" class="btn border h-50 border-0 btn-outline-light nav-link text-start text-dark my-2">
-                        <i class=""><img width="50" height="50" class="rounded-circle" src="@Model.OwnerUser.Avatar"/></i><b class="ms-3">@Model.OwnerUser.UserName</b>
-                    </a>
+                    <div class="row row-cols-2">
+                        <div class="col col-10">
+                            <a asp-action="Profile" asp-controller="Account" asp-route-id="@Model.OwnerUserId" class=" h-50 nav-link text-start text-dark my-2">
+                                <i class=""><img width="50" height="50" class="rounded-circle" src="@Model.OwnerUser.Avatar"/></i><b class="ms-3">@Model.OwnerUser.UserName</b>
+                            </a>
+                        </div>
+                        @if (Model.OwnerUserId == ViewBag.CurrentUser.Id)
+                        {
+                            <div class="col col-1 align-self-center">
+                                <div class="btn-group dropup ms-auto">
+                                    <a class="btn border border-0 dropdown-toggle btn-outline-light nav-link text-start text-dark" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <svg aria-label="More options" class="x1lliihq x1n2onr6 x5n08af" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><title>More options</title><circle cx="12" cy="12" r="1.5"></circle><circle cx="6" cy="12" r="1.5"></circle><circle cx="18" cy="12" r="1.5"></circle></svg>
+                                    </a>
+                                    <ul class="dropdown-menu text-center">
+                                        <li id="delete" class="">
+                                            <a type="button" class="btn btn-light text-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">Delete</a>
+                                        </li>
+                                        <li id="edit" class="mt-3">Edit</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        }
+                    </div>
                 </div>
                 <div class="col-12">
                     <div class="comment-block">
@@ -81,9 +101,32 @@
         </div>
     </div>
 </div>
+
+
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Are you sure you want to delete this post?</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-footer">
+                <a type="button" class="btn btn-light" data-bs-dismiss="modal">Close</a>
+                <a id="confirmDeleteButton" class="btn btn-light text-danger">Confirm Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 @section Scripts
 {
     <script>
+        function showSuccessDeletedMessage() {
+            $('#confirmDeleteButton').html(
+            '<div class="text-center text-success"><i class="fas fa-check display-2"></i><h3 class="mt-3">Post Successfully Deleted</h3></div>');
+        }
         function followIdentButton(identVal){
             if (identVal===false){
                 $('#follow').removeClass().toggleClass('my-auto btn me-auto btn-info');
@@ -109,9 +152,24 @@
             likeIdent='@ViewBag.LikeIdent'!=='False';
             followIdentButton(followIdent);
             likeIdentButton(likeIdent);
+            $('#delete').click(function(e){
+                e.preventDefault();
+                $('#confirmDeleteButton').click(function(e){
+                    e.preventDefault();
+                    $.ajax({
+                        url: '@Url.Action("Delete", "Post")',
+                        type: 'POST',
+                        data: { 'postId':  @Model.Id, 'userId': @Model.OwnerUserId},
+                        success: function (){
+                            showSuccessDeletedMessage();
+                            window.location.href = '@Url.Action("Profile", "Account", new {id = @Model.OwnerUserId})';
+                        }
+                    }); 
+                });
+            });
             $('#follow').click(function (e){
                 e.preventDefault();
-                let userId = @Model.OwnerUser.Id;
+                let userId = @Model.OwnerUserId;
                 $.ajax({
                     url: '@Url.Action("Follow", "Account")',
                     type: 'POST',
