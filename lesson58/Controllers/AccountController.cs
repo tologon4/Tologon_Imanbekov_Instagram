@@ -115,6 +115,13 @@ public class AccountController : Controller
         ViewBag.FollowIdent = followToUser.Followers.Any(u => u.FollowFromId == curUser.Id);
         return View(followToUser);
     }
+
+    [HttpPost]
+    public async Task<IActionResult> HomePageLikeIdent(int? postId, int? curUserId)
+    {
+        Post? post = await _db.Posts.Include(l => l.LikeUsers).FirstOrDefaultAsync(p => p.Id == postId);
+        return Json(new {likeIdentVar = post.LikeUsers.Any(u => u.UserId == curUserId)});
+    }
     
     [Authorize]
     public async Task<IActionResult> Home()
@@ -126,7 +133,6 @@ public class AccountController : Controller
             .Where(u => u.Id != currentUser.Id && u.Followers.All(f => f.FollowFromId != currentUser.Id))
             .ToList(); 
         var followingIds = currentUser?.Followings?.Select(f => f.FollowToId).ToList();
-
         List<Post> posts = _db.Posts.Include(o => o.OwnerUser)
             .Include(u => u.LikeUsers)
             .Where(o => o.OwnerUserId != currentUser.Id && followingIds.Contains(o.OwnerUserId))

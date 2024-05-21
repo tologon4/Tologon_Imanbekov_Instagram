@@ -67,11 +67,12 @@ public class PostController : Controller
             .Include(p => p.Post)
             .Where(c => c.PostId == post.Id);;
         ViewBag.CurrentUser = curUser;
-        ViewBag.LikeQue = !post.LikeUsers.Any(u => u.UserId == curUser.Id);
-        ViewBag.FollowQue = !followToUser.Followers.Any(u => u.FollowFromId == curUser.Id);
+        ViewBag.LikeIdent = post.LikeUsers.Any(u => u.UserId == curUser.Id);
+        ViewBag.FollowIdent = followToUser.Followers.Any(u => u.FollowFromId == curUser.Id);
         return View(post);
     }
     [Authorize]
+    [HttpPost]
     public async Task<IActionResult> Like(int? userId, int? postId)
     {
         var referrer = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
@@ -80,7 +81,8 @@ public class PostController : Controller
         User? user = await _db.Users.Include(p => p.Posts).FirstOrDefaultAsync(u => u.Id == userId);
         User? curUser = await _db.Users.Include(p => p.Likes).FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)));
         Post? post = await _db.Posts.Include(u => u.LikeUsers).FirstOrDefaultAsync(p => p.Id == postId);
-        if (!post.LikeUsers.Any(u => u.UserId == curUser.Id))
+        var likeIdent = !post.LikeUsers.Any(u => u.UserId == curUser.Id);
+        if (likeIdent)
         {
             UserPostLike relation = new UserPostLike()
             {
@@ -106,7 +108,7 @@ public class PostController : Controller
         _db.Users.Update(curUser);
         _db.Users.Update(user);
         await _db.SaveChangesAsync();
-        return Redirect(referrer);
+        return  Json( new { likesCount = post.LikesCount, likeIdentVar = likeIdent});
     }
     [Authorize]
     [HttpGet]
