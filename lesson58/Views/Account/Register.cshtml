@@ -3,6 +3,8 @@
     ViewBag.Title = "Instagram";
     Layout = "_Layout2";
 }
+@inject IViewLocalizer Localizer
+
 <div class="container">
     <div class="row row-cols-1 mt-5">
         <div class="col col-8 mx-auto">
@@ -25,26 +27,26 @@
                                 <div class="input-group mt-2">
                                     <label for="phone"><span class="text-danger" asp-validation-for="PhoneNumber"></span></label>
                                     <div class="input-group">
-                                        <input asp-for="PhoneNumber" type="text" class="form-control" placeholder="Phone number" id="phone">
+                                        <input asp-for="PhoneNumber" type="text" class="form-control" placeholder="@Localizer["Phone"]" id="phone">
                                     </div>
                                 </div>
                                 <div class="input-group mt-2">
                                     <label for="userName"><span class="text-danger" asp-validation-for="UserName"></span></label>
                                     <div class="input-group">
-                                        <input asp-for="UserName" type="text" class="form-control" placeholder="Username" id="userName">
+                                        <input asp-for="UserName" type="text" class="form-control" placeholder="@Localizer["UserName"]" id="userName">
                                     </div>
                                 </div>
                                 <div class="input-group mt-2">
                                     <label for="login"><span class="text-danger" asp-validation-for="FullName"></span></label>
                                     <div class="input-group">
-                                        <input asp-for="FullName" type="text" class="form-control" placeholder="Full name" id="login">
+                                        <input asp-for="FullName" type="text" class="form-control" placeholder="@Localizer["FullName"]" id="login">
                                     </div>
                                 </div>
                                 <div class="input-group mt-2">
                                     <label for="gen"><span class="text-danger" asp-validation-for="Gender"></span></label>
                                     <div class="input-group">
                                         <select asp-for="Gender" class="form-select" id="gen">
-                                            <option disabled="disabled" selected="selected">Choose your gender</option>
+                                            <option disabled="disabled" selected="selected">@Localizer["Choose gender"]</option>
                                             @foreach (var gender in ViewBag.Genders)
                                             {
                                                 <option value="@gender">@gender</option>
@@ -59,29 +61,29 @@
                                     </div>
                                 </div>
                                 <div class="mt-2">
-                                    <label for="file">Choose your profile photo</label>
+                                    <label for="file">@Localizer["ChoosePhoto"]</label>
                                     <input id="file" type="file" name="uploadedFile" class="form-control" required="required">
                                 </div>
                                 <div class="input-group mt-2">
                                     <label for="pass"><span class="text-danger" asp-validation-for="Password"></span></label>
                                     <div class="input-group">
-                                        <input asp-for="Password" type="password" class="form-control" placeholder="Password" id="pass">
+                                        <input asp-for="Password" type="password" class="form-control" placeholder="@Localizer["Password"]" id="pass">
                                     </div>
                                 </div>
                                 <div class="input-group mt-2">
                                     <label for="conPass"><span class="text-danger" asp-validation-for="ConfirmPassword"></span></label>
                                     <div class="input-group">
-                                        <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm Password" id="conPass">
+                                        <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="@Localizer["ConfPassword"]" id="conPass">
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-primary rounded-2 w-100 mt-3">Sign up</button>
+                                <button type="submit" class="btn btn-primary rounded-2 w-100 mt-3">@Localizer["SignUp"]</button>
                             </form>
                         </div>
                         <div class="col col-12 text-center border border-1 mt-4 py-4">
-                            Have an account? &nbsp;<a class="link link-info link-underline link-underline-opacity-0" asp-action="Login" >Log in</a>
+                            @Localizer["HaveAccount"] &nbsp;<a class="link link-info link-underline link-underline-opacity-0" asp-action="Login" >@Localizer["Login"]</a>
                         </div>
                         <div class="col-12 text-center pt-3">
-                            Get the app.
+                            @Localizer["GetApp"]
                             <a href="https://play.google.com/store/apps/details?id=com.instagram.android&pli=1">
                                 <img alt="" class="w-75 mt-3" src="~/images/Снимок экрана 2024-05-06 в 17.57.13.png"/>
                             </a>

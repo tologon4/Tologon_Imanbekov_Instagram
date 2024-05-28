@@ -20,6 +20,8 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 @inject SignInManager<User> signInManager;
 @inject UserManager<User> userManager;
+@inject IViewLocalizer Localizer
+
 <div class="container-fluid ">
     <div class="row row-cols-2 ">
         <div class="col col-2 buttons position-fixed  border-end">
@@ -29,27 +31,27 @@
                 </div>
                 <div class="nav flex-column ms-3 mt-4 " id="v-pills-tab" role="tablist" aria-orientation="vertical">
                     <a asp-action="Home" asp-controller="Account" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3 ">
-                        <i class=""><img class="w-25" src="~/images/home.png"/></i><span class="ms-3">Home</span>
+                        <i class=""><img class="w-25" src="~/images/home.png"/></i><span class="ms-3">@Localizer["Home"]</span>
                     </a>
                     <a asp-action="Search" asp-controller="Account" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
-                        <i class=""><img class="w-25" src="~/images/search.png"/></i><span class="ms-3">Search</span>
+                        <i class=""><img class="w-25" src="~/images/search.png"/></i><span class="ms-3">@Localizer["Search"]</span>
                     </a>
                     <a asp-action="Explore" asp-controller="Account" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
-                        <i class=""><img class="w-25" src="~/images/social.png"/></i><span class="ms-3">Explore</span>
+                        <i class=""><img class="w-25" src="~/images/social.png"/></i><span class="ms-3">@Localizer["Explore"]</span>
                     </a>
                     <a asp-controller="Post" asp-action="Create" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
-                        <i class=""><img class="w-25" src="~/images/add.png"/></i><span class="ms-3">Create</span>
+                        <i class=""><img class="w-25" src="~/images/add.png"/></i><span class="ms-3">@Localizer["Create"]</span>
                     </a>
                     <a asp-action="Profile" asp-controller="Account" asp-route-id="@CurrentUserGet().Id" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-3">
-                        <i class=""><img width="50" height="50" class="rounded-circle" src="@CurrentUserGet().Avatar"/></i><span class="ms-3">Profile</span>
+                        <i class=""><img width="50" height="50" class="rounded-circle" src="@CurrentUserGet().Avatar"/></i><span class="ms-3">@Localizer["Profile"]</span>
                     </a>
                     <div class="btn-group dropup">
                         <a class="btn  border border-0 dropdown-toggle btn-outline-light nav-link text-start text-dark mt-4" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img class="w-25 " src="~/images/menu.png"/><span class="ms-3">More</span>
+                            <img class="w-25 " src="~/images/menu.png"/><span class="ms-3">@Localizer["More"]</span>
                         </a>
                         <ul class="dropdown-menu">
                             <li>
-                                <form method="post" asp-controller="Account" asp-action="LogOut"><input type="submit" value="Log out" class="dropdown-item nav-link text-dark"/></form></li>
+                                <form method="post" asp-controller="Account" asp-action="LogOut"><input type="submit" value="@Localizer["Logout"]" class="dropdown-item nav-link text-dark"/></form></li>
                         </ul>
                     </div>
                 </div>

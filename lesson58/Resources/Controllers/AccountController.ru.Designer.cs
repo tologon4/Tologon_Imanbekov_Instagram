@@ -7,28 +7,28 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace lesson58.Resources.Controllers.AccountController {
+namespace lesson58.Resources.Controllers {
     using System;
     
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class ru {
+    internal class AccountController_ru {
         
         private static System.Resources.ResourceManager resourceMan;
         
         private static System.Globalization.CultureInfo resourceCulture;
         
         [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal ru() {
+        internal AccountController_ru() {
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.Equals(null, resourceMan)) {
-                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("lesson58.Resources.Controllers.AccountController.ru", typeof(ru).Assembly);
+                    System.Resources.ResourceManager temp = new System.Resources.ResourceManager("lesson58.Resources.Controllers.AccountController_ru", typeof(AccountController_ru).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -42,6 +42,18 @@ namespace lesson58.Resources.Controllers.AccountController {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        internal static string Female {
+            get {
+                return ResourceManager.GetString("Female", resourceCulture);
+            }
+        }
+        
+        internal static string Male {
+            get {
+                return ResourceManager.GetString("Male", resourceCulture);
             }
         }
     }

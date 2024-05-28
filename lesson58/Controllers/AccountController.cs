@@ -182,14 +182,14 @@ public class AccountController : Controller
 
     public IActionResult Register()
     {
-        ViewBag.Genders = new string[] { "Male", "Female"};
+        ViewBag.Genders = new string[] {_localizer["Male"], _localizer["Female"]};
         return View();
     }
 
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel model, IFormFile uploadedFile)
     {
-        ViewBag.Genders = new string[] { "Male", "Female"};
+        ViewBag.Genders = new string[] { _localizer["Male"], _localizer["Female"]};
         if (ModelState.IsValid)
         {
             string newFileName = Path.ChangeExtension($"{model.UserName.Trim()}-ProfileN=1", Path.GetExtension(uploadedFile.FileName));
@@ -227,7 +227,7 @@ public class AccountController : Controller
     [Authorize]
     public IActionResult Edit()
     {
-        ViewBag.Genders = new string[] { "Male", "Female"};
+        ViewBag.Genders = new string[] { _localizer["Male"], _localizer["Female"]};
         User model = _db.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
         EditViewModel user = new EditViewModel()
         {
@@ -244,7 +244,7 @@ public class AccountController : Controller
     [HttpPost]
     public async Task<IActionResult> Edit(EditViewModel model, IFormFile? uploadedFile)
     {
-        ViewBag.Genders = new string[] { "Male", "Female"};
+        ViewBag.Genders = new string[] { _localizer["Male"], _localizer["Female"]};
         User user = _db.Users.FirstOrDefault(u=>u.Id==int.Parse(_userManager.GetUserId(User)));
         var buffer = user.Avatar.Split('=');
         var buffer2 = buffer[buffer.Length - 1].Split('.');

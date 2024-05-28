@@ -18,4 +18,25 @@
     <resheader name="writer">
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
+    <data name="Home" xml:space="preserve">
+        <value>Дом</value>
+    </data>
+    <data name="Search" xml:space="preserve">
+        <value>Поиск</value>
+    </data>
+    <data name="Explore" xml:space="preserve">
+        <value>Интересное</value>
+    </data>
+    <data name="Create" xml:space="preserve">
+        <value>Создать</value>
+    </data>
+    <data name="Profile" xml:space="preserve">
+        <value>Профиль</value>
+    </data>
+    <data name="More" xml:space="preserve">
+        <value>Еще</value>
+    </data>
+    <data name="Logout" xml:space="preserve">
+        <value>Выйти</value>
+    </data>
 </root>
