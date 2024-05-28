@@ -33,7 +33,7 @@
             </div>
         </div>
     </div>
-    <div class="col col-12 mt-5 px-3 border-top">
+    <div class="col col-12 mt-5 px-3 border-top" id="postInfo">
         <div class="row row-cols-sm-2">
             <div class="col-md-6">
                 <img src="@Model.FilePath" class="w-100 rounded-start" alt="">
@@ -168,26 +168,30 @@
             } 
         }
         $().ready(function (){
-            let followIdent;
-            followIdent='@ViewBag.FollowIdent'!=='False';
-            let likeIdent;
-            likeIdent='@ViewBag.LikeIdent'!=='False';
+            let followIdent='@ViewBag.FollowIdent'!=='False';
+            let likeIdent='@ViewBag.LikeIdent'!=='False';
             followIdentButton(followIdent);
             likeIdentButton(likeIdent);
             $('#edit').click(function (e){
                 e.preventDefault();
                 $('#confirmEditButton').submit(function(e){
-                                    e.preventDefault();
-                                    $.ajax({
-                                        url: '@Url.Action("Edit", "Post")',
-                                        type: 'POST',
-                                        data: { 'postId':  @Model.Id, 'userId': @Model.OwnerUserId, 'content': $('#postEditContent').val() },
-                                        success: function (data){
-                                            console.log(data);
-                                            $('#description').text(data.contentVar);
-                                        }
-                                    }); 
-                                });               
+                    e.preventDefault();
+                    $.ajax({
+                        url: '@Url.Action("Edit", "Post")',
+                        type: 'POST',
+                        data: { 'postId':  @Model.Id, 'userId': @Model.OwnerUserId, 'content': $('#postEditContent').val() },
+                        success: function (data){
+                            if(data.isSuccess === true){
+                                $('#description').text(data.contentVar);
+                            }else{
+                                $('#editModal .modal-content').append(`<span class="mx-auto text-danger" id="errorEdit">Couldn't edit</span>`);
+                                setTimeout(function (){
+                                   $('#errorEdit').remove(); 
+                                }, 5000)
+                            }
+                        }
+                    }); 
+                });               
             });
             $('#delete').click(function(e){
                 e.preventDefault();
@@ -197,8 +201,15 @@
                         url: '@Url.Action("Delete", "Post")',
                         type: 'POST',
                         data: { 'postId':  @Model.Id, 'userId': @Model.OwnerUserId},
-                        success: function (){
-                            window.location.href = '@Url.Action("Profile", "Account", new { id = @Model.OwnerUserId })';
+                        success: function (data){
+                            if (data.isSuccess === true){
+                                $('#postInfo').remove('<div>').html(`<span class="mx-auto my-auto  fs-1"> No post </span>`);
+                            }else{
+                                $('#deleteModal .modal-content').append(`<span class="mx-auto text-danger" id="errorDelete">Couldn't delete</span>`);
+                                setTimeout(function (){
+                                   $('#errorDelete').remove(); 
+                                }, 5000)
+                            }
                         }
                     }); 
                 });

@@ -1,6 +1,6 @@
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @model User
-
+@inject IViewLocalizer Localizer
 @{
     ViewBag.Title = "Instagram";
     Layout = "_Layout";
@@ -14,7 +14,7 @@
         <div class="card-body">
             <div class="row ">
                 <div class=" col col-3"><h5>@Model.UserName</h5></div>
-                @if (ViewBag.CurrentUser.Id == @Model.Id) { <div class="col col-9 d-flex"><a class="my-auto btn btn-light me-auto" asp-action="Edit" asp-controller="Account">Edit profile</a></div> }
+                @if (ViewBag.CurrentUser.Id == @Model.Id) { <div class="col col-9 d-flex"><a class="my-auto btn btn-light me-auto" asp-action="Edit" asp-controller="Account">@Localizer["EditBtn"]</a></div> }
                 @if (ViewBag.CurrentUser.Id != @Model.Id)
                 {
                     <input id="followViewBagIdent" type="hidden" data-myValue="@ViewBag.FollowIdent"/>
@@ -24,12 +24,12 @@
                         </button>
                     </div>
                 }
-                <div class="col col-4 mt-4"><b>@Model.PostCount</b> &nbsp; posts</div>
-                <div class="col col-4 mt-4"><b id="followersCount">@Model.FollowersCount</b>&nbsp;followers</div>
-                <div class="col col-4 mt-4"><b>@Model.FollowingsCount</b>&nbsp;following</div>
+                <div class="col col-4 mt-4"><b>@Model.PostCount</b> &nbsp; @Localizer["PostsIdent"]</div>
+                <div class="col col-4 mt-4"><b id="followersCount">@Model.FollowersCount</b>&nbsp;@Localizer["FollowersIdent"]</div>
+                <div class="col col-4 mt-4"><b>@Model.FollowingsCount</b>&nbsp;@Localizer["FollowingsIdent"]</div>
                 <div class="col col-12 mt-4"><h5>@Model.FullName</h5></div>
                 <div class="col col-12 mt-4">
-                    <b>My Bio</b><br/>@Model.UserInfo
+                    <b>@Localizer["Bio"]</b><br/>@Model.UserInfo
                 </div>
             </div>
         </div>
@@ -61,8 +61,7 @@
             }
         }
         $().ready(function (){
-            let ident;
-            ident='@ViewBag.FollowIdent'!=='False';
+            let ident = '@ViewBag.FollowIdent'!=='False';
             followIdentButton(ident);
             $('#follow').click(function (e){
                 e.preventDefault();

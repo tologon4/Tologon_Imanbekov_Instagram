@@ -18,20 +18,13 @@ public class ValidationController : Controller
     [AcceptVerbs("GET", "POST")]
     public bool CheckEmail(string Email)
     {
-        bool result = true;
-        foreach (var user in _context.Users)
-            if (user.Email.ToLower().Trim() == Email.ToLower().Trim())
-                result = false;
-        return result;
+        return !_context.Users.Any(u => u.Email.ToLower().Trim() == Email.ToLower().Trim());
     }
     [AcceptVerbs("GET", "POST")]
     public bool CheckUsername(string UserName)
     {
-        bool result = true;
-        foreach (var user in _context.Users)
-            if (user.UserName.ToLower().Trim() == UserName.ToLower().Trim())
-                result = false;
-        return result;
+        return !_context.Users.Any(u => u.UserName.ToLower().Trim() == UserName.ToLower().Trim());
+
     }
     
     [AcceptVerbs("GET", "POST")]
@@ -39,14 +32,13 @@ public class ValidationController : Controller
     {
         User usr = _context.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
         bool result = true;
-        foreach (var user in _context.Users)
-            if (user.Email.ToLower().Trim() == Email.ToLower().Trim())
-            {
-                if (Email.ToLower().Trim() == usr.Email.ToLower().Trim())
-                    result = true;
-                else
-                    result = false;
-            }
+        if (_context.Users.Any(u => u.Email.ToLower().Trim() == Email.ToLower().Trim()))
+        {
+            if (Email.ToLower().Trim() == usr.Email.ToLower().Trim())
+                result = true;
+            else
+                result = false;
+        }
         return result;
     }
     [AcceptVerbs("GET", "POST")]
@@ -54,14 +46,13 @@ public class ValidationController : Controller
     {
         User usr = _context.Users.FirstOrDefault(u => u.Id == int.Parse(_userManager.GetUserId(User)));
         bool result = true;
-        foreach (var user in _context.Users)
-            if (user.UserName.ToLower().Trim() == UserName.ToLower().Trim())
-            {
-                if (UserName.ToLower().Trim() == usr.UserName.ToLower().Trim())
-                    result = true;
-                else
-                    result = false;
-            }
+        if (_context.Users.Any(u => u.UserName.ToLower().Trim() == UserName.ToLower().Trim()))
+        {
+            if (UserName.ToLower().Trim() == usr.UserName.ToLower().Trim())
+                result = true;
+            else
+                result = false;
+        }
         return result;
     }
 }

@@ -1,5 +1,5 @@
 @model List<User>
-
+@inject IViewLocalizer Localizer
 
 @{
     ViewBag.Title = "Instagram";
@@ -10,7 +10,7 @@
         <form asp-action="Search">
             <div class="input-group my-4">
                 <input name="searchParam" type="text" class="form-control" placeholder="Search"  aria-describedby="button-addon2">
-                <button hidden="hidden" class="btn btn-outline-light border-start-0 text-info" type="submit" id="button-addon2">Search</button>
+                <button hidden="hidden" class="btn btn-outline-light border-start-0 text-info" type="submit" id="button-addon2">@Localizer["Search"]</button>
             </div>
         </form>
     </div>
@@ -19,7 +19,7 @@
         {
             <div class="position-absolute top-50 start-50 translate-middle">
                 <h4 class="text-secondary">
-                    No results found.
+                    @Localizer["NoRes"]
                 </h4>
             </div>
         }
@@ -40,7 +40,7 @@
             <a asp-action="Profile" asp-controller="Account" asp-route-id="@ViewBag.CurrentUser.Id" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-2">
                 <i class=""><img width="50" height="50" class="rounded-circle" src="@ViewBag.CurrentUser.Avatar"/></i><span class="ms-3">@ViewBag.CurrentUser.UserName</span>
             </a>
-            <p class="text-secondary fs-5"> Suggested for you</p>
+            <p class="text-secondary fs-5"> @Localizer["Suggested"]</p>
             @foreach (var user in @ViewBag.SuggestedUsers)
             {
                 <a asp-action="Profile" asp-controller="Account" asp-route-id="@user.Id" class="btn border border-0 btn-outline-light nav-link text-start text-dark my-2">

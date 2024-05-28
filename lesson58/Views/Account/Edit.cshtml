@@ -4,8 +4,9 @@
     ViewBag.Title = "Instagram";
     Layout = "_Layout";
 }
+@inject IViewLocalizer Localizer
 
-<h2>Edit profile</h2>
+<h2>@Localizer["Edit"]</h2>
 <div class="row">
     <div class="col col-6 mx-auto border border-1 py-4 px-5">
         <form asp-action="Edit" asp-controller="Account" asp-anti-forgery="true" enctype="multipart/form-data">
@@ -20,26 +21,26 @@
             <div class="input-group mt-2">
                 <label for="phone"><span class="text-danger" asp-validation-for="PhoneNumber"></span></label>
                 <div class="input-group">
-                    <input asp-for="PhoneNumber" type="text" class="form-control" placeholder="Phone number" id="phone">
+                    <input asp-for="PhoneNumber" type="text" class="form-control" placeholder="@Localizer["Phone"]" id="phone">
                 </div>
             </div>
             <div class="input-group mt-2">
                 <label for="userName"><span class="text-danger" asp-validation-for="UserName"></span></label>
                 <div class="input-group">
-                    <input asp-for="UserName" type="text" class="form-control" placeholder="Username" id="userName">
+                    <input asp-for="UserName" type="text" class="form-control" placeholder="@Localizer["UserName"]" id="userName">
                 </div>
             </div>
             <div class="input-group mt-2">
                 <label for="login"><span class="text-danger" asp-validation-for="FullName"></span></label>
                 <div class="input-group">
-                    <input asp-for="FullName" type="text" class="form-control" placeholder="Full name" id="login">
+                    <input asp-for="FullName" type="text" class="form-control" placeholder="@Localizer["FullName/"]" id="login">
                 </div>
             </div>
             <div class="input-group mt-2">
                 <label for="gen"><span class="text-danger" asp-validation-for="Gender"></span></label>
                 <div class="input-group">
                     <select asp-for="Gender" class="form-select" id="gen">
-                        <option disabled="disabled" selected="selected">Choose your gender</option>
+                        <option disabled="disabled" selected="selected">@Localizer["GenderChoose"]</option>
                         @foreach (var gender in ViewBag.Genders)
                         {
                             <option value="@gender">@gender</option>
@@ -54,22 +55,22 @@
                 </div>
             </div>
             <div class="mt-2">
-                <label for="file">Choose your profile photo</label>
+                <label for="file">@Localizer["ChoosePhoto"]</label>
                 <input id="file" type="file" name="uploadedFile" class="form-control">
             </div>
             <div class="input-group mt-2">
                 <label for="pass"><span class="text-danger" asp-validation-for="Password"></span></label>
                 <div class="input-group">
-                    <input asp-for="Password" type="password" class="form-control" placeholder="Password" id="pass">
+                    <input asp-for="Password" type="password" class="form-control" placeholder="@Localizer["Password"]" id="pass">
                 </div>
             </div>
             <div class="input-group mt-2">
                 <label for="conPass"><span class="text-danger" asp-validation-for="ConfirmPassword"></span></label>
                 <div class="input-group">
-                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm Password" id="conPass">
+                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="@Localizer["ConfPassword"]" id="conPass">
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary rounded-2 w-100 mt-3">Edit</button>
+            <button type="submit" class="btn btn-primary rounded-2 w-100 mt-3">@Localizer["EditBtn"]</button>
         </form>
     </div>
 </div>

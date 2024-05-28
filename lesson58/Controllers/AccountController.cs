@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace lesson58.Controllers;
@@ -14,14 +15,17 @@ public class AccountController : Controller
     private readonly IWebHostEnvironment _environment;
     private InstagramDb _db;
     private IHttpContextAccessor _httpContextAccessor;
+    private readonly IStringLocalizer<AccountController> _localizer;
  
     public AccountController(UserManager<User> userManager, SignInManager<User> signInManager,
-        IWebHostEnvironment environment, InstagramDb db, IHttpContextAccessor httpContextAccessor)
+        IWebHostEnvironment environment, InstagramDb db, IHttpContextAccessor httpContextAccessor,
+        IStringLocalizer<AccountController> localizer)
     {
         _httpContextAccessor = httpContextAccessor;
         _signInManager = signInManager;
         _userManager = userManager;
         _environment = environment;
+        _localizer = localizer;
         _db = db;
     }
 
