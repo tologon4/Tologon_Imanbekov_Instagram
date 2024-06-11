@@ -1,4 +1,5 @@
 using lesson58.Models;
+using lesson58.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,16 +17,18 @@ public class AccountController : Controller
     private InstagramDb _db;
     private IHttpContextAccessor _httpContextAccessor;
     private readonly IStringLocalizer<AccountController> _localizer;
+    private CacheService _service;
  
     public AccountController(UserManager<User> userManager, SignInManager<User> signInManager,
         IWebHostEnvironment environment, InstagramDb db, IHttpContextAccessor httpContextAccessor,
-        IStringLocalizer<AccountController> localizer)
+        IStringLocalizer<AccountController> localizer, CacheService service)
     {
         _httpContextAccessor = httpContextAccessor;
         _signInManager = signInManager;
         _userManager = userManager;
         _environment = environment;
         _localizer = localizer;
+        _service = service;
         _db = db;
     }
 
@@ -106,15 +109,22 @@ public class AccountController : Controller
     }
     
     [Authorize]
+    [ResponseCache(CacheProfileName = "Caching")]
     public async Task<IActionResult> Profile(int? id)
     {
         var referrer = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
         if (!id.HasValue)
             return Redirect(referrer);
         User? curUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)));
-        User? followToUser = await _db.Users.Include(p => p.Posts)
-            .Include(l => l.Likes).Include(f => f.Followers)
-            .Include(c => c.Comments).FirstOrDefaultAsync(u => u.Id == id);
+        User? followToUser = await _service.GetUser(id);
+        if (followToUser == null)
+        {
+            followToUser = await _db.Users.Include(p => p.Posts)
+                .Include(l => l.Likes).Include(f => f.Followers)
+                .Include(c => c.Comments).FirstOrDefaultAsync(u => u.Id == id);
+            await _service.AddUser(followToUser);
+        }
+            
         ViewBag.CurrentUser = curUser;
         ViewBag.FollowIdent = followToUser.Followers.Any(u => u.FollowFromId == curUser.Id);
         return View(followToUser);
@@ -215,6 +225,7 @@ public class AccountController : Controller
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, false);
+                await _service.AddUser(user);
                 return RedirectToAction("Home");
             }
             foreach (var error in result.Errors)
@@ -245,7 +256,11 @@ public class AccountController : Controller
     public async Task<IActionResult> Edit(EditViewModel model, IFormFile? uploadedFile)
     {
         ViewBag.Genders = new string[] { _localizer["Male"], _localizer["Female"]};
-        User user = _db.Users.FirstOrDefault(u=>u.Id==int.Parse(_userManager.GetUserId(User)));
+        User user = _db.Users.Include(u => u.Followers)
+            .Include(u => u.Likes)
+            .Include(u => u.Followings)
+            .Include(u => u.Comments)
+            .Include(u => u.Posts).FirstOrDefault(u=>u.Id==int.Parse(_userManager.GetUserId(User)));
         var buffer = user.Avatar.Split('=');
         var buffer2 = buffer[buffer.Length - 1].Split('.');
         if (ModelState.IsValid)
@@ -271,7 +286,12 @@ public class AccountController : Controller
             user.PasswordHash = model.Password != null ? _userManager.PasswordHasher.HashPassword(user, model.Password) : user.PasswordHash;
             await _userManager.UpdateAsync(user);
             _db.Users.Update(user);
-            await _db.SaveChangesAsync();
+            int n = await _db.SaveChangesAsync();
+            if (n> 0)
+            {
+                await _service.RemoveUser(user.Id);
+                await _service.AddUser(user);
+            }
             return RedirectToAction("Profile", new {id=user.Id});
         }
         ModelState.AddModelError("", "Something went wrong! Please check all info");
