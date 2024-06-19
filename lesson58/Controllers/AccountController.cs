@@ -50,6 +50,8 @@ public class AccountController : Controller
         usersNew.AddRange(users.Where(u => u.UserName.Contains(searchParam)).ToList());
         return View(usersNew.ToHashSet().ToList());
     }
+    
+    
     [Authorize]
     public async Task<IActionResult> Explore()
     {
@@ -190,6 +192,19 @@ public class AccountController : Controller
         return View(model);
     }
 
+    public async Task<IActionResult> InfoToEmail()
+    {
+        User? user = await _userManager.GetUserAsync(User);
+        if (user != null)
+        {
+            EmailService emailService = new EmailService();
+            await emailService.SendEmail(user.Email, "Ваши данные в Instagram", 
+                $"Данные по пользователю");
+            return Ok(true);
+        }
+        return Ok(false);
+    }
+    
     public IActionResult Register()
     {
         ViewBag.Genders = new string[] {_localizer["Male"], _localizer["Female"]};
@@ -226,6 +241,11 @@ public class AccountController : Controller
             {
                 await _signInManager.SignInAsync(user, false);
                 await _service.AddUser(user);
+                EmailService emailService = new EmailService();
+                await emailService.SendEmail(user.Email, "Успешная регистрация в Instagram", $"Поздравляю вас {user.FullName} ! \n" +
+                    $"Вы успешно зарегистрировались в Instagram, ваши данные для входа в приложение \n" +
+                    $"Логин {user.UserName} \n" +
+                    $"Электронная почта {user.Email}");
                 return RedirectToAction("Home");
             }
             foreach (var error in result.Errors)
@@ -275,6 +295,21 @@ public class AccountController : Controller
                     await uploadedFile.CopyToAsync(fileStream);
                 }
             }
+
+            List<string?> message = new List<string?>();
+            message.Add(user.Email != model.Email ? $"Ваш Email был изменен на {model.Email}" : null );
+            message.Add(user.UserName != model.UserName ? $"Ваш UserName был изменен на {model.UserName}" : null );
+            message.Add(user.FullName != model.FullName ? $"Ваш FullName был изменен на {model.FullName}" : null );
+            message.Add(user.Gender != model.Gender ? $"Ваш пол был изменен на {model.Gender}" : null );
+            message.Add(user.PhoneNumber != model.PhoneNumber ? $"Ваш номер телефона был изменен на {model.PhoneNumber}" : null );
+            message.Add(user.Avatar != path ? $"Ваше фото профиля было изменено" : null );
+            message.Add(user.UserInfo != model.UserInfo ? $"Ваш Bio был изменен на {model.UserInfo}" : null );
+            message.Add(user.PasswordHash != _userManager.PasswordHasher.HashPassword(user, model.Password) ? $"Ваш пароль был изменен" : null );
+            EmailService emailService = new EmailService();
+            await emailService.SendEmail(user.Email, "Редактирование профиля", 
+                "Вы успешно изменили ваши персональные данные\n" + 
+                "Ваши измененные данные : \n" +
+                $"{string.Join("\n", message)}"); 
             user.Id = user.Id;
             user.Email = model.Email;
             user.FullName = model.FullName;
@@ -292,6 +327,7 @@ public class AccountController : Controller
                 await _service.RemoveUser(user.Id);
                 await _service.AddUser(user);
             }
+            
             return RedirectToAction("Profile", new {id=user.Id});
         }
         ModelState.AddModelError("", "Something went wrong! Please check all info");
