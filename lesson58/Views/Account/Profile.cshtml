@@ -14,7 +14,11 @@
         <div class="card-body">
             <div class="row ">
                 <div class=" col col-3"><h5>@Model.UserName</h5></div>
-                @if (ViewBag.CurrentUser.Id == @Model.Id) { <div class="col col-9 d-flex"><a class="my-auto btn btn-light me-auto" asp-action="Edit" asp-controller="Account">@Localizer["EditBtn"]</a></div> }
+                @if (ViewBag.CurrentUser.Id == @Model.Id)
+                {
+                    <div class="col col-3 d-flex"><a class="my-auto btn btn-light me-auto" asp-action="Edit" asp-controller="Account">@Localizer["EditBtn"]</a></div>
+                    <div class="col col-7 d-flex"><span class="my-auto btn btn-light me-auto" role="button" id="toEmail">Получить личную информацию</span></div>
+                }
                 @if (ViewBag.CurrentUser.Id != @Model.Id)
                 {
                     <input id="followViewBagIdent" type="hidden" data-myValue="@ViewBag.FollowIdent"/>
@@ -61,6 +65,22 @@
             }
         }
         $().ready(function (){
+            
+            $('#toEmail').click(function (){
+                $.ajax({
+                    url: '@Url.Action("InfoToEmail", "Account")',
+                    type: 'GET',
+                    data: '',
+                    success: function (data){
+                        if (data){
+                            alert('Личные данные отправлены вам на почту ' + '@Model.Email');
+                        }else{
+                            alert('Произошла ошибка при отправке данных');
+                        }                   
+                    }
+                });
+            });
+            
             let ident = '@ViewBag.FollowIdent'!=='False';
             followIdentButton(ident);
             $('#follow').click(function (e){

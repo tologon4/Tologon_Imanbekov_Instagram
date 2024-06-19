@@ -192,14 +192,28 @@ public class AccountController : Controller
         return View(model);
     }
 
+    [HttpGet]
+    [Authorize]
     public async Task<IActionResult> InfoToEmail()
     {
-        User? user = await _userManager.GetUserAsync(User);
+        User? user = await _db.Users.Include(p => p.Posts).FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)));
         if (user != null)
         {
+            int likesCount = 0;
+            foreach (var post in user.Posts)
+            {
+                likesCount += (int)post.LikesCount!;
+            }
             EmailService emailService = new EmailService();
             await emailService.SendEmail(user.Email, "Ваши данные в Instagram", 
-                $"Данные по пользователю");
+                $"Данные по пользователю {user.Id} \n " +
+                $"Email - {user.Email} \n" +
+                $"Логин - {user.UserName} \n" +
+                $"Количесnво подписок - {user.FollowingsCount} \n" +
+                $"Количество подписчиков - {user.FollowersCount} \n" +
+                $"Количесnво публикаций - {user.PostCount} \n" +
+                $"Количесnво лайков - {likesCount} \n" +
+                $"О пользователе {user.UserInfo}");
             return Ok(true);
         }
         return Ok(false);
