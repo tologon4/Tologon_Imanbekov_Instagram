@@ -54,12 +54,11 @@
 @section Scripts {
     <script>
         function checkEmailConfirm(){
-            var errorText = $('#errors').text();
+            let errorText = $('#errors').text();
                             if (errorText.includes('Email is not confirmed')) {
                                 let loginValue = $('#email').val();
                                 let emailConf = confirm('Ваша почта не подтверждена, вход не возможен, \n' +
                                                         ' Отправить письмо с подтверждением ещё раз? ');
-            
                                 if (emailConf) {
                                     $.ajax({
                                         url: '@Url.Action("EmailConfirmMessage", "Account")',
