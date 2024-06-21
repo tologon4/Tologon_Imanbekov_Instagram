@@ -1,0 +1,14 @@
+@model string
+
+
+<div class="mt-5 text-center">
+    <h5 class="mt-5">Подтверждение Email</h5>
+    @if (@Model == "True")
+    {
+        <h5>Вы успешно подтвердили свой Email</h5>
+    }
+    else
+    {
+        <p> Произошла ошибка при подтверждении Email</p>
+    }
+</div>

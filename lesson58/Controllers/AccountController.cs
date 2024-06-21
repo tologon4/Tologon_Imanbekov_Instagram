@@ -17,18 +17,16 @@ public class AccountController : Controller
     private InstagramDb _db;
     private IHttpContextAccessor _httpContextAccessor;
     private readonly IStringLocalizer<AccountController> _localizer;
-    private CacheService _service;
  
     public AccountController(UserManager<User> userManager, SignInManager<User> signInManager,
         IWebHostEnvironment environment, InstagramDb db, IHttpContextAccessor httpContextAccessor,
-        IStringLocalizer<AccountController> localizer, CacheService service)
+        IStringLocalizer<AccountController> localizer)
     {
         _httpContextAccessor = httpContextAccessor;
         _signInManager = signInManager;
         _userManager = userManager;
         _environment = environment;
         _localizer = localizer;
-        _service = service;
         _db = db;
     }
 
@@ -117,19 +115,17 @@ public class AccountController : Controller
         var referrer = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
         if (!id.HasValue)
             return Redirect(referrer);
-        User? curUser = await _db.Users.FirstOrDefaultAsync(u => u.Id == int.Parse(_userManager.GetUserId(User)));
-        User? followToUser = await _service.GetUser(id);
-        if (followToUser == null)
+        User? curUser = await _userManager.GetUserAsync(User);
+        if (curUser != null)
         {
-            followToUser = await _db.Users.Include(p => p.Posts)
+            User? followToUser = await _db.Users.Include(p => p.Posts)
                 .Include(l => l.Likes).Include(f => f.Followers)
                 .Include(c => c.Comments).FirstOrDefaultAsync(u => u.Id == id);
-            await _service.AddUser(followToUser);
+            ViewBag.CurrentUser = curUser;
+            ViewBag.FollowIdent = followToUser.Followers.Any(u => u.FollowFromId == curUser.Id);
+            return View(followToUser);
         }
-            
-        ViewBag.CurrentUser = curUser;
-        ViewBag.FollowIdent = followToUser.Followers.Any(u => u.FollowFromId == curUser.Id);
-        return View(followToUser);
+        return RedirectToAction("Login");
     }
 
     [HttpPost]
@@ -172,7 +168,7 @@ public class AccountController : Controller
             User? user = await _userManager.FindByEmailAsync(model.LoginValue);
             if (user == null)
                 user = await _userManager.FindByNameAsync(model.LoginValue);
-            if (user != null)
+            if (user != null && user.EmailConfirmed)
             {
                 SignInResult result = await _signInManager.PasswordSignInAsync(
                     user,
@@ -186,12 +182,38 @@ public class AccountController : Controller
                     return RedirectToAction("Home");
                 }
             }
-            ModelState.AddModelError("", "Invalid email, login or password!");
+            ModelState.AddModelError("", "Email is not confirmed");
         }
         ModelState.AddModelError("", "Invalid provided form!");
         return View(model);
     }
 
+    [HttpPost]
+    public async Task<IActionResult> EmailConfirmMessage(string loginValue)
+    {
+        User? user = await _userManager.FindByEmailAsync(loginValue);
+        if (user == null)
+            user = await _userManager.FindByNameAsync(loginValue);
+        EmailService emailService = new EmailService();
+        if (_db.Users.Any(u => u.Email == user.Email))
+        {
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var confirmationLink = Url.Action("_ConfirmEmail", "Account", new { token, email = user.Email }, Request.Scheme);
+            await emailService.SendEmail(user.Email, "Подтверждение Email", $"Пожалуйста, подтвердите свою регистрацию, перейдя по ссылке: <a href='{confirmationLink}'>подтвердить</a>");
+            return Ok(true);
+        }
+        return Ok(false);
+    }
+    
+    public async Task<IActionResult> _ConfirmEmail(string token, string email)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+            return View("Error");
+        var result = await _userManager.ConfirmEmailAsync(user, token);
+        return PartialView(model:result.Succeeded.ToString());
+    }
+    
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> InfoToEmail()
@@ -207,13 +229,13 @@ public class AccountController : Controller
             EmailService emailService = new EmailService();
             await emailService.SendEmail(user.Email, "Ваши данные в Instagram", 
                 $"Данные по пользователю {user.Id} \n " +
-                $"Email - {user.Email} \n" +
-                $"Логин - {user.UserName} \n" +
-                $"Количесnво подписок - {user.FollowingsCount} \n" +
-                $"Количество подписчиков - {user.FollowersCount} \n" +
-                $"Количесnво публикаций - {user.PostCount} \n" +
-                $"Количесnво лайков - {likesCount} \n" +
-                $"О пользователе {user.UserInfo}");
+                $"<br/> Email - {user.Email} \n" +
+                $"<br/> Логин - {user.UserName} \n" +
+                $"<br/> Количесnво подписок - {user.FollowingsCount} \n" +
+                $"<br/> Количество подписчиков - {user.FollowersCount} \n" +
+                $"<br/> Количесnво публикаций - {user.PostCount} \n" +
+                $"<br/> Количесnво лайков - {likesCount} \n" +
+                $"<br/> О пользователе {user.UserInfo}");
             return Ok(true);
         }
         return Ok(false);
@@ -228,15 +250,18 @@ public class AccountController : Controller
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel model, IFormFile uploadedFile)
     {
-        ViewBag.Genders = new string[] { _localizer["Male"], _localizer["Female"]};
+        ViewBag.Genders = new string[] { _localizer["Male"], _localizer["Female"] };
+
         if (ModelState.IsValid)
-        {
-            string newFileName = Path.ChangeExtension($"{model.UserName.Trim()}-ProfileN=1", Path.GetExtension(uploadedFile.FileName));
-            string path= $"/userImages/" + newFileName.Trim();
+        { 
+            string newFileName = Path.ChangeExtension($"{model.UserName.Trim()}-ProfileN=1", Path.GetExtension(uploadedFile.FileName)); 
+            string path = $"/userImages/" + newFileName.Trim();
+        
             using (var fileStream = new FileStream(_environment.WebRootPath + path, FileMode.Create))
             {
                 await uploadedFile.CopyToAsync(fileStream);
             }
+
             User user = new User
             {
                 Email = model.Email,
@@ -250,24 +275,40 @@ public class AccountController : Controller
                 FollowersCount = 0,
                 FollowingsCount = 0
             };
+
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
             {
-                await _signInManager.SignInAsync(user, false);
-                await _service.AddUser(user);
-                EmailService emailService = new EmailService();
+                EmailService emailService = new EmailService(); 
                 await emailService.SendEmail(user.Email, "Успешная регистрация в Instagram", $"Поздравляю вас {user.FullName} ! \n" +
-                    $"Вы успешно зарегистрировались в Instagram, ваши данные для входа в приложение \n" +
-                    $"Логин {user.UserName} \n" +
-                    $"Электронная почта {user.Email}");
-                return RedirectToAction("Home");
+                $"<br/> Вы успешно зарегистрировались в Instagram, ваши данные для входа в приложение \n" +
+                $"<br/> Логин {user.UserName} \n" +
+                $"<br/> Электронная почта {user.Email} \n" +
+                $"<br/> <a href=\"http://localhost:5117/Account/Profile/{user.Id}\"> Ваш профиль  </a> ");
+
+                if (user.EmailConfirmed) 
+                {
+                    await _signInManager.SignInAsync(user, false);
+                    return RedirectToAction("Home");
+                }
+                else
+                {
+                    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var confirmationLink = Url.Action("_ConfirmEmail", "Account", new { token, email = user.Email }, Request.Scheme);
+                    await emailService.SendEmail(user.Email, "Подтверждение Email", $"Пожалуйста, подтвердите свою регистрацию, перейдя по ссылке: <a href='{confirmationLink}'>подтвердить</a>");
+                    return RedirectToAction("Login");
+                }
             }
             foreach (var error in result.Errors)
+            {
                 ModelState.AddModelError(string.Empty, error.Description);
+            }
         }
-        ModelState.AddModelError("", "Something went wrong! Please check all info");
+
+        ModelState.AddModelError("", "Что-то пошло не так! Пожалуйста, проверьте всю информацию.");
         return View(model);
     }
+
     
     [Authorize]
     public IActionResult Edit()
@@ -316,14 +357,15 @@ public class AccountController : Controller
             message.Add(user.FullName != model.FullName ? $"Ваш FullName был изменен на {model.FullName}" : null );
             message.Add(user.Gender != model.Gender ? $"Ваш пол был изменен на {model.Gender}" : null );
             message.Add(user.PhoneNumber != model.PhoneNumber ? $"Ваш номер телефона был изменен на {model.PhoneNumber}" : null );
-            message.Add(user.Avatar != path ? $"Ваше фото профиля было изменено" : null );
+            message.Add(path != null ? $"Ваше фото профиля было изменено" : null );
             message.Add(user.UserInfo != model.UserInfo ? $"Ваш Bio был изменен на {model.UserInfo}" : null );
-            message.Add(user.PasswordHash != _userManager.PasswordHasher.HashPassword(user, model.Password) ? $"Ваш пароль был изменен" : null );
+            if (model.Password != null)
+                message.Add(user.PasswordHash != _userManager.PasswordHasher.HashPassword(user, model.Password) ? $"Ваш пароль был изменен" : null );
             EmailService emailService = new EmailService();
             await emailService.SendEmail(user.Email, "Редактирование профиля", 
-                "Вы успешно изменили ваши персональные данные\n" + 
-                "Ваши измененные данные : \n" +
-                $"{string.Join("\n", message)}"); 
+                "Вы успешно изменили ваши персональные данные " + 
+                "<br/> Ваши измененные данные : " +
+                $"{string.Join("<br/>", message)}"); 
             user.Id = user.Id;
             user.Email = model.Email;
             user.FullName = model.FullName;
@@ -333,15 +375,8 @@ public class AccountController : Controller
             user.Avatar = path != null ? path : user.Avatar;
             user.UserInfo = model.UserInfo;
             user.PasswordHash = model.Password != null ? _userManager.PasswordHasher.HashPassword(user, model.Password) : user.PasswordHash;
-            await _userManager.UpdateAsync(user);
             _db.Users.Update(user);
-            int n = await _db.SaveChangesAsync();
-            if (n> 0)
-            {
-                await _service.RemoveUser(user.Id);
-                await _service.AddUser(user);
-            }
-            
+            await _db.SaveChangesAsync();
             return RedirectToAction("Profile", new {id=user.Id});
         }
         ModelState.AddModelError("", "Something went wrong! Please check all info");

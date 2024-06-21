@@ -18,11 +18,13 @@ public class EmailService
         message.From.Add(new MimeKit.MailboxAddress("тологон", from));
         message.To.Add(new MimeKit.MailboxAddress("", to));
         message.Subject = subject;
-        message.Body = new MimeKit.TextPart("plain")
+        
+        var bodyBuilder = new MimeKit.BodyBuilder
         {
-            Text = text
+            HtmlBody = text
         };
 
+        message.Body = bodyBuilder.ToMessageBody();
         using (var client = new MailKit.Net.Smtp.SmtpClient())
         {
             await client.ConnectAsync(server, port, enableSsl);

@@ -13,14 +13,11 @@ public class PostController : Controller
     private InstagramDb _db;
     private IWebHostEnvironment _environment;
     private IHttpContextAccessor _httpContextAccessor;
-    private CacheService _service;
 
     public PostController(UserManager<User> userManager, InstagramDb db,
-        IWebHostEnvironment environment, IHttpContextAccessor contextAccessor,
-        CacheService service)
+        IWebHostEnvironment environment, IHttpContextAccessor contextAccessor)
     {
         _db = db;
-        _service = service;
         _userManager = userManager;
         _environment = environment;
         _httpContextAccessor = contextAccessor;
@@ -71,9 +68,7 @@ public class PostController : Controller
                     user.PostCount--;
                     _db.Posts.Remove(post);
                     _db.Users.Update(user);
-                    int n = await _db.SaveChangesAsync();
-                    if (n>0)
-                        await _service.RemovePost(post);
+                    await _db.SaveChangesAsync();
                     return Json(new {isSuccess = true});
                 }
             }
@@ -99,12 +94,7 @@ public class PostController : Controller
                     post.Description = content;
                     _db.Posts.Update(post);
                     _db.Users.Update(user);
-                    int n = await _db.SaveChangesAsync();
-                    if (n > 0)
-                    {
-                        await _service.RemovePost(post.Id);
-                        _service.AddPost(post);
-                    }
+                    await _db.SaveChangesAsync();
                     return Json(new {isSuccess = true, contentVar = content});
                 }
             }
@@ -117,19 +107,14 @@ public class PostController : Controller
     public async Task<IActionResult> Details(int? id)
     {
         var referrer = _httpContextAccessor.HttpContext.Request.Headers["Referer"].ToString();
-        if (!id.HasValue) 
+        if (!id.HasValue)
             return Redirect(referrer);
         User? curUser = await _db.Users.Include(p => p.Posts)
             .FirstOrDefaultAsync(u => u.Id==int.Parse(_userManager.GetUserId(User)));
-        Post? post = await _service.GetPost(id);
-        if (post == null)
-        {
-            post = await _db.Posts.Include(l => l.LikeUsers)
-                .Include(o => o.OwnerUser)
-                .Include(c => c.CommentUsers)
-                .FirstOrDefaultAsync(p => p.Id == id);
-            await _service.AddPost(post);
-        }
+        Post? post = await _db.Posts.Include(l => l.LikeUsers)
+            .Include(o => o.OwnerUser)
+            .Include(c => c.CommentUsers)
+            .FirstOrDefaultAsync(p => p.Id == id);
         User? followToUser = await _db.Users
             .Include(f => f.Followers)
             .FirstOrDefaultAsync(u => u.Id == post.OwnerUserId);
@@ -137,8 +122,8 @@ public class PostController : Controller
             .Include(p => p.Post)
             .Where(c => c.PostId == post.Id);;
         ViewBag.CurrentUser = curUser;
-        ViewBag.LikeIdent = post.LikeUsers?.Any(u => u.UserId == curUser?.Id);
-        ViewBag.FollowIdent = followToUser?.Followers.Any(u => u.FollowFromId == curUser?.Id);
+        ViewBag.LikeIdent = post.LikeUsers.Any(u => u.UserId == curUser.Id);
+        ViewBag.FollowIdent = followToUser.Followers.Any(u => u.FollowFromId == curUser.Id);
         return View(post);
     }
     [Authorize]
@@ -209,7 +194,6 @@ public class PostController : Controller
             user.PostCount++;
             user.Posts.Add(post);
             _db.Posts.Add(post);
-            await _service.AddPost(post);
             await _db.SaveChangesAsync();
             return RedirectToAction("Profile", "Account", new {id = user.Id});
         }
